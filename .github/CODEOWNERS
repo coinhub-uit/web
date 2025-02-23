@@ -1,0 +1,15 @@
+* @coinhub-uit/team-manager
+
+.github/workflows/ @coinhub-uit/team-devops
+
+eslint.config.mjs @coinhub-uit/team-web
+next.config.ts @coinhub-uit/team-web
+package.json @coinhub-uit/team-web
+postcss.config.mjs @coinhub-uit/team-web
+public/ @coinhub-uit/team-web
+src/ @coinhub-uit/team-web
+tailwind.config.ts @coinhub-uit/team-web
+tsconfig.json @coinhub-uit/team-web
+
+package-lock.json
+README.md
