@@ -1,10 +1,15 @@
-import StoreProvider from '@/app/storeProvider';
+import './globals.css';
+
 import type { Metadata } from 'next';
 import type { NextFontWithVariable } from 'next/dist/compiled/@next/font';
 import { Noto_Sans } from 'next/font/google';
 
+import StoreProvider from '@/app/storeProvider';
+import SwrConfig from '@/app/swrConfig';
+
 const noto_sans: NextFontWithVariable = Noto_Sans({
   variable: '--font-noto-sans',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
@@ -20,7 +25,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${noto_sans.variable} antialiased`}>
-        <StoreProvider>{children}</StoreProvider>
+        <StoreProvider>
+          <SwrConfig>{children}</SwrConfig>
+        </StoreProvider>
       </body>
     </html>
   );

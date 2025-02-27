@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+
+@plugin "daisyui" {
+  themes:
+    nord --default,
+    dark --prefersdark;
+}
+
+@theme {
+  --font-sans: var(--font-noto-sans);
+}

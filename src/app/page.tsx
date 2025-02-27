@@ -1,3 +1,7 @@
 export default function Home() {
-  return <></>;
+  return (
+    <>
+      <button className="btn btn-neutral">Neutral</button>
+    </>
+  );
 }

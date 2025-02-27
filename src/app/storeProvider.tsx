@@ -13,7 +13,6 @@ export default function StoreProvider({
   if (!storeRef.current) {
     // Create the store instance the first time this renders
     storeRef.current = makeStore();
-    // TODO: init admin
   }
 
   return <Provider store={storeRef.current}>{children}</Provider>;
