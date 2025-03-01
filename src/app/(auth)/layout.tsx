@@ -14,7 +14,7 @@ const noto_sans: NextFontWithVariable = Noto_Sans({
 
 export const metadata: Metadata = {
   title: 'CoinHub',
-  description: 'Let us protect your money',
+  description: 'Let us protect your money', // TODO: For login?? " ... | Login"
 };
 
 export default function RootLayout({

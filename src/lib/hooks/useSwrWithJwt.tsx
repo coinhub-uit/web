@@ -9,9 +9,6 @@ async function fetcher(
   adminToken: string | null,
   init?: RequestInit,
 ): Promise<Response> {
-  // const response = await fetch(url, {
-  //   headers: accessToken ? { Authorization: `Bearer ${accessToken}`, null } : {},
-  // });
   if (adminToken !== null) {
     if (init === undefined) {
       init = {};
