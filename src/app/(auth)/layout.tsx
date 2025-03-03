@@ -1,16 +1,9 @@
-import './globals.css';
+import '@/app/globals.css';
 
 import type { Metadata } from 'next';
-import type { NextFontWithVariable } from 'next/dist/compiled/@next/font';
-import { Noto_Sans } from 'next/font/google';
 
 import StoreProvider from '@/app/storeProvider';
 import SwrConfig from '@/app/swrConfig';
-
-const noto_sans: NextFontWithVariable = Noto_Sans({
-  variable: '--font-noto-sans',
-  subsets: ['latin'],
-});
 
 export const metadata: Metadata = {
   title: 'CoinHub',
@@ -23,12 +16,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${noto_sans.variable} antialiased`}>
-        <StoreProvider>
-          <SwrConfig>{children}</SwrConfig>
-        </StoreProvider>
-      </body>
-    </html>
+    <StoreProvider>
+      <SwrConfig>{children}</SwrConfig>
+    </StoreProvider>
   );
 }
