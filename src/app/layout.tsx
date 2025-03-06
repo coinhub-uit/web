@@ -6,6 +6,7 @@ import { Noto_Sans } from 'next/font/google';
 
 import StoreProvider from '@/app/storeProvider';
 import SwrConfig from '@/app/swrConfig';
+import { SessionProvider } from 'next-auth/react';
 
 const noto_sans: NextFontWithVariable = Noto_Sans({
   variable: '--font-noto-sans',
@@ -25,12 +26,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${noto_sans.variable} antialiased`}>
-        <StoreProvider>
-          <SwrConfig>
-            {/* TODO: Sidebar / Navbar here */}
-            {children}
-          </SwrConfig>
-        </StoreProvider>
+        <SessionProvider>
+          <StoreProvider>
+            <SwrConfig>
+              {/* TODO: Sidebar / Navbar here */}
+              {children}
+            </SwrConfig>
+          </StoreProvider>
+        </SessionProvider>
       </body>
     </html>
   );
