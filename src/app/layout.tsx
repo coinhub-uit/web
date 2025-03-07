@@ -4,8 +4,8 @@ import type { Metadata } from 'next';
 import type { NextFontWithVariable } from 'next/dist/compiled/@next/font';
 import { Noto_Sans } from 'next/font/google';
 
-import StoreProvider from '@/app/storeProvider';
-import SwrConfig from '@/app/swrConfig';
+import StoreProvider from '@/components/storeProvider';
+import SwrConfig from '@/components/swrConfig';
 import { SessionProvider } from 'next-auth/react';
 
 const noto_sans: NextFontWithVariable = Noto_Sans({

@@ -1,3 +1,5 @@
+'use client';
+
 import { SWRConfig } from 'swr';
 
 export default function SwrConfig({ children }: { children: React.ReactNode }) {

@@ -19,8 +19,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        username: { label: 'Username', autofocus: true },
-        password: { label: 'Password', type: 'password' },
+        username: {
+          label: 'Username',
+          autofocus: true,
+          placeholder: 'example@domain.com',
+        },
+        password: {
+          label: 'Password',
+          type: 'password',
+          placeholder: 'password',
+        },
       },
       authorize: async (credentials) => {
         const response: Response = await fetch(

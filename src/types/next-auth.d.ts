@@ -1,4 +1,7 @@
-// https://github.com/nextauthjs/next-auth/issues/11295#issuecomment-2525430099import type { User, UserObject } from 'next-auth'; // eslint-disable-line @typescript-eslint/no-unused-vars
+// https://github.com/sourcehawk/next-auth-custom-backend
+// https://github.com/nextauthjs/next-auth/issues/11295#issuecomment-2525430099
+
+import type { User, UserObject } from 'next-auth'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 declare module 'next-auth' {
   export interface BackendAccessJWT {
