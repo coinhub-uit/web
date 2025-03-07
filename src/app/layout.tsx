@@ -4,8 +4,8 @@ import type { Metadata } from 'next';
 import type { NextFontWithVariable } from 'next/dist/compiled/@next/font';
 import { Noto_Sans } from 'next/font/google';
 
-import StoreProvider from '@/app/storeProvider';
-import SwrConfig from '@/app/swrConfig';
+import StoreConfig from '@/components/storeConfig';
+import SwrConfig from '@/components/swrConfig';
 import { SessionProvider } from 'next-auth/react';
 
 const noto_sans: NextFontWithVariable = Noto_Sans({
@@ -24,15 +24,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${noto_sans.variable} antialiased`}>
         <SessionProvider>
-          <StoreProvider>
+          <StoreConfig>
             <SwrConfig>
               {/* TODO: Sidebar / Navbar here */}
               {children}
             </SwrConfig>
-          </StoreProvider>
+          </StoreConfig>
         </SessionProvider>
       </body>
     </html>
