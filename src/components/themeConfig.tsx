@@ -7,5 +7,13 @@ export default function ThemeConfig({
 }: {
   children: React.ReactNode;
 }) {
-  return <ThemeProvider>{children}</ThemeProvider>;
+  return (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="pastel"
+      themes={['pastel', 'dracula']}
+    >
+      {children}
+    </ThemeProvider>
+  );
 }

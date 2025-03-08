@@ -15,6 +15,8 @@ class BadClientError extends CredentialsSignin {
   code = 'Bad client error';
 }
 
+export function refreshAccessToken() {}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
@@ -60,7 +62,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       request: NextRequest;
     }) => {
       const path: string = request.nextUrl.pathname;
-      console.log(path);
       if (PUBLIC_ROUTES.includes(path)) {
         return NextResponse.next();
       }
