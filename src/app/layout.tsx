@@ -30,10 +30,7 @@ export default function RootLayout({
         <SessionProvider>
           <StoreProvider>
             <SwrConfig>
-              <ThemeProvider>
-                {/* TODO: Sidebar / Navbar here */}
-                {children}
-              </ThemeProvider>
+              <ThemeProvider>{children}</ThemeProvider>
             </SwrConfig>
           </StoreProvider>
         </SessionProvider>

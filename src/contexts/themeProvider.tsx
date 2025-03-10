@@ -9,7 +9,7 @@ export default function ThemeProvider({
 }) {
   return (
     <NextThemeProvider
-      attribute="class"
+      attribute="data-theme"
       defaultTheme="pastel"
       themes={['pastel', 'dracula']}
     >

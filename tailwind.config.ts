@@ -15,7 +15,7 @@ const config: Config & {
     themes?: DaisyUIThemes[];
   };
 } = {
-  // darkMode: 'class',
+  darkMode: 'class',
   content: ['./src/**/*.{tsx,ts,jsx,js}'],
   plugins: [daisyui],
   daisyui: {
