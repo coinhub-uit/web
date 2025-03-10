@@ -1,29 +1,36 @@
 'use client';
 
 import useSWR from 'swr';
-import { useAppSelector } from '@/lib/hooks/redux';
-import { RootState } from '@/lib/store';
+import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
+import { Session } from 'next-auth';
 
 async function fetcher(
   url: string,
-  adminToken: string | null,
+  session: Session, // TODO: use the type of session
   init?: RequestInit,
 ): Promise<Response> {
-  if (adminToken !== null) {
+  if (session !== null) {
     if (init === undefined) {
       init = {};
     }
     init.headers = {
-      Authorization: `Bearer ${adminToken}`,
+      Authorization: `Bearer ${session}`,
     };
   }
   const response = await fetch(url, init);
+  if (response.status === 401) {
+    // TODO: check if access token is not expired, try to get new access token
+    // if access token is expired too, then redirect
+    redirect('/api/auth/signin');
+  }
   return response;
 }
 
 export default function useSwrWithJwt(url: string, init?: RequestInit) {
-  const adminToken: string | null = useAppSelector(
-    (state: RootState) => state.admin.token,
-  );
-  return useSWR(url, (url) => fetcher(url, adminToken, init));
+  const { data } = useSession();
+  if (data === null) {
+    redirect('/api/auth/signin');
+  }
+  return useSWR(url, (url) => fetcher(url, data, init));
 }

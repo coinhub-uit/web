@@ -1,6 +1,8 @@
 import NextAuth, { CredentialsSignin, Session } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import Credentials from 'next-auth/providers/credentials';
+import { API_URL_REFRESH_ACCESS_TOKEN } from '@/constants/api-urls';
+import { redirect } from 'next/navigation';
 
 const PUBLIC_ROUTES = ['/'];
 
@@ -15,15 +17,29 @@ class BadClientError extends CredentialsSignin {
   code = 'Bad client error';
 }
 
-export function refreshAccessToken() {}
+export async function refreshAccessToken(accessToken: string) {
+  // TODO: Sending refresh token as header or body?
+  const response: Response = await fetch(API_URL_REFRESH_ACCESS_TOKEN, {
+    cache: 'no-store',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ accessToken }),
+  });
+  if (!response.ok) {
+    redirect('/api/auth/signin');
+  }
+}
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
   providers: [
     Credentials({
       credentials: {
         username: { label: 'Username', autofocus: true },
         password: { label: 'Password', type: 'password' },
       },
+      // this function is called when using credentials provider
       authorize: async (credentials) => {
         const response: Response = await fetch(
           process.env.API_SERVER_URL || '',

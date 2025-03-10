@@ -4,11 +4,10 @@ import type { Metadata } from 'next';
 import type { NextFontWithVariable } from 'next/dist/compiled/@next/font';
 import { Noto_Sans } from 'next/font/google';
 
-import StoreConfig from '@/components/storeConfig';
-import SwrConfig from '@/components/swrConfig';
+import StoreProvider from '@/contexts/storeProvider';
+import SwrConfig from '@/contexts/swrConfig';
 import { SessionProvider } from 'next-auth/react';
-
-import { ThemeProvider } from 'next-themes';
+import ThemeProvider from '@/contexts/themeProvider';
 
 const noto_sans: NextFontWithVariable = Noto_Sans({
   variable: '--font-noto-sans',
@@ -29,17 +28,14 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${noto_sans.variable} antialiased`}>
         <SessionProvider>
-          <StoreConfig>
+          <StoreProvider>
             <SwrConfig>
-              <ThemeProvider
-                attribute="data-theme"
-                enableSystem={false}
-                defaultTheme="pastel"
-              >
+              <ThemeProvider>
+                {/* TODO: Sidebar / Navbar here */}
                 {children}
               </ThemeProvider>
             </SwrConfig>
-          </StoreConfig>
+          </StoreProvider>
         </SessionProvider>
       </body>
     </html>
