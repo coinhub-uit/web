@@ -8,6 +8,8 @@ import StoreConfig from '@/components/storeConfig';
 import SwrConfig from '@/components/swrConfig';
 import { SessionProvider } from 'next-auth/react';
 
+import { ThemeProvider } from 'next-themes';
+
 const noto_sans: NextFontWithVariable = Noto_Sans({
   variable: '--font-noto-sans',
   subsets: ['latin'],
@@ -29,8 +31,13 @@ export default function RootLayout({
         <SessionProvider>
           <StoreConfig>
             <SwrConfig>
-              {/* TODO: Sidebar / Navbar here */}
-              {children}
+              <ThemeProvider
+                attribute="data-theme"
+                enableSystem={false}
+                defaultTheme="pastel"
+              >
+                {children}
+              </ThemeProvider>
             </SwrConfig>
           </StoreConfig>
         </SessionProvider>
