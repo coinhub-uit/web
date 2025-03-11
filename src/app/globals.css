@@ -1,20 +1,13 @@
 @import 'tailwindcss';
 
-@custom-variant dark (&:is(.dark *));
-
 @plugin "daisyui" {
   themes:
     pastel --default,
     dracula --prefersdark;
 }
 
-@plugin 'tailwindcss-animate';
-
-@theme {
-  --font-sans: var(--font-noto-sans);
-}
-
 :root {
+  --font-sans: var(--font-noto-sans);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
