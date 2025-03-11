@@ -1,26 +1,10 @@
 import type { Config } from 'tailwindcss';
+
 import daisyui from 'daisyui';
 
-type DaisyUIThemes =
-  | 'pastel'
-  | 'dracula'
-  | 'light'
-  | 'dark'
-  | 'cupcake'
-  | 'bumblebee'
-  | 'emerald';
-
-const config: Config & {
-  daisyui?: {
-    themes?: DaisyUIThemes[];
-  };
-} = {
-  // darkMode: 'class',
-  content: ['./src/**/*.{tsx,ts,jsx,js}'],
+const config: Config = {
+  content: ['./src/components/**/*.tsx', './src/app/**/*.tsx'],
   plugins: [daisyui],
-  daisyui: {
-    themes: ['pastel', 'dracula'],
-  },
 };
 
 export default config;
