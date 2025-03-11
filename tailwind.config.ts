@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import animate from 'tailwindcss-animate';
 import daisyui from 'daisyui';
 
 type DaisyUIThemes =
@@ -17,7 +18,7 @@ const config: Config & {
 } = {
   // darkMode: 'class',
   content: ['./src/**/*.{tsx,ts,jsx,js}'],
-  plugins: [daisyui],
+  plugins: [animate, daisyui],
   daisyui: {
     themes: ['pastel', 'dracula'],
   },
