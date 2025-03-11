@@ -1,15 +1,14 @@
 'use client';
-import { useTheme } from 'next-themes';
+import useToggleThemes from '@/lib/hooks/useToggleThemes';
 import Image from 'next/image';
 import Link from 'next/link';
-import React from 'react';
 
 const Logo = () => {
-  const { theme } = useTheme();
-  const LogoSource =
-    theme === 'dracula'
-      ? '/images/coinhub-wordmark-white.png'
-      : '/images/Coinhub-Wordmark.png';
+  const { isDark } = useToggleThemes();
+  const LogoSource = isDark
+    ? '/images/coinhub-wordmark-white.png'
+    : '/images/Coinhub-Wordmark.png';
+
   return (
     <Link
       href="/"
