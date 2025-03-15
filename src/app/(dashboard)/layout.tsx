@@ -1,19 +1,44 @@
-import Menu from '@/components/ui/menu';
-import ToggleThemesButton from '@/components/ui/themes/toggleThemesButton';
-import Logo from '@/components/ui/logo';
+'use client';
+import Navbar from '@/components/ui/dashboardLayout/navbar';
+import Sidebar from '@/components/ui/dashboardLayout/sidebar';
+
+import { useEffect, useState } from 'react';
 
 export default function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 800) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
     <div className="flex h-screen">
-      <div className="bg-base-200 flex w-[14%] flex-col items-center p-4 md:w-[8%] lg:w-[16%] xl:w-[14%]">
-        <Logo />
-        <Menu />
-        <ToggleThemesButton />
-      </div>
-      <div className="w-[86%] bg-blue-200 md:w-[92%] lg:w-[84%] xl:w-[86%]">
-        {children}
+      <aside
+        className={`bg-base-100 fixed inset-y-0 left-0 z-50 w-64 min-w-[200px] p-4 shadow-lg transition-transform duration-300 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } md:relative md:w-1/6 md:translate-x-0`}
+      >
+        <Sidebar />
+      </aside>
+      <div className="flex flex-grow flex-col bg-blue-200">
+        <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        <div className="flex-grow p-4">{children}</div>
       </div>
     </div>
   );

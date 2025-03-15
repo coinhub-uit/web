@@ -1,5 +1,4 @@
 'use client';
-import React, { useRef } from 'react';
 import { LuHouse } from 'react-icons/lu';
 import { LuUsers } from 'react-icons/lu';
 import { LuPiggyBank } from 'react-icons/lu';
