@@ -4,6 +4,7 @@ import { LuUsers } from 'react-icons/lu';
 import { LuPiggyBank } from 'react-icons/lu';
 import { LuChartPie } from 'react-icons/lu';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 // TODO: don't hard code routes
 export const menuItems = [
@@ -30,17 +31,19 @@ export const menuItems = [
 ];
 
 const Menu = () => {
+  const pathName = usePathname();
   return (
     <>
       <div className="text-base-content p-1">MENU</div>
       <div>
         {menuItems.map((item) => {
           const ItemIcon = item.icon;
+          const isActive = pathName.startsWith(item.href);
           return (
             <Link
               key={item.label}
               href={item.href}
-              className="group hover:bg-base-300 flex items-center gap-2 rounded-lg p-2 transition-colors duration-200"
+              className={`group ${isActive ? 'bg-base-300' : 'hover:bg-base-200'} flex items-center gap-2 rounded-lg p-2 transition-colors duration-200`}
             >
               <div className="transition-transform duration-200 group-hover:scale-110">
                 <ItemIcon size={20} />
