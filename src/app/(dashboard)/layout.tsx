@@ -30,7 +30,7 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen">
       <aside
-        className={`bg-base-100 fixed inset-y-0 left-0 z-50 w-64 min-w-[200px] p-4 shadow-lg transition-transform duration-300 ${
+        className={`bg-base-100 fixed inset-y-0 left-0 z-50 w-64 min-w-[200px] p-4 shadow-lg transition-transform duration-500 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } md:relative md:w-1/6 md:translate-x-0`}
       >
