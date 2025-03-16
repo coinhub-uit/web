@@ -11,7 +11,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 800) {
+      if (window.innerWidth < 900) {
         setIsSidebarOpen(false);
       } else {
         setIsSidebarOpen(true);
@@ -36,7 +36,13 @@ export default function DashboardLayout({
       >
         <Sidebar />
       </aside>
-      <div className="flex flex-grow flex-col bg-blue-200">
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/10 backdrop-blur-sm md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+      <div className="flex flex-grow flex-col bg-blue-100">
         <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
         <div className="flex-grow p-4">{children}</div>
       </div>

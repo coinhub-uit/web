@@ -12,7 +12,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }: NavbarProps) => {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsSmallScreen(window.innerWidth < 800);
+      setIsSmallScreen(window.innerWidth < 900);
     };
 
     handleResize();
@@ -54,9 +54,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }: NavbarProps) => {
           </button>
         )}
       </div>
-      <div className="flex-1">
-        <a className="btn btn-ghost text-xl">daisyUI</a>
-      </div>
+      <span className="ml-5 flex-1 text-2xl font-semibold">Dashboard</span>
       <ToggleThemesButton />
       <div className="dropdown dropdown-end mr-3 ml-3">
         <div
