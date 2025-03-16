@@ -6,7 +6,7 @@ import { LuChartPie } from 'react-icons/lu';
 import Link from 'next/link';
 
 // TODO: don't hard code routes
-const menuItems = [
+export const menuItems = [
   {
     icon: LuHouse,
     label: 'Home',

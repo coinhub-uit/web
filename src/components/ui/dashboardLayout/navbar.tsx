@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import ToggleThemesButton from '../themes/toggleThemesButton';
+import { menuItems } from './menu';
+import { usePathname } from 'next/navigation';
 
 interface NavbarProps {
   toggleSidebar: () => void;
@@ -9,7 +11,13 @@ interface NavbarProps {
 
 const Navbar = ({ toggleSidebar, isSidebarOpen }: NavbarProps) => {
   const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const pathName = usePathname();
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
+  const currentPage = menuItems.find((item) => pathName.startsWith(item.href));
   useEffect(() => {
     const handleResize = () => {
       setIsSmallScreen(window.innerWidth < 900);
@@ -54,7 +62,9 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }: NavbarProps) => {
           </button>
         )}
       </div>
-      <span className="ml-5 flex-1 text-2xl font-semibold">Dashboard</span>
+      <text className="ml-5 flex-1 text-2xl font-semibold">
+        {mounted ? currentPage?.label : 'Dashboard'}
+      </text>
       <ToggleThemesButton />
       <div className="dropdown dropdown-end mr-3 ml-3">
         <div
