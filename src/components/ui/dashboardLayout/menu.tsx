@@ -1,8 +1,5 @@
 'use client';
-import { LuHouse } from 'react-icons/lu';
-import { LuUsers } from 'react-icons/lu';
-import { LuPiggyBank } from 'react-icons/lu';
-import { LuChartPie } from 'react-icons/lu';
+import { LuHouse, LuUsers, LuPiggyBank, LuChartPie } from 'react-icons/lu';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
