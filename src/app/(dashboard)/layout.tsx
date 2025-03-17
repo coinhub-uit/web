@@ -1,7 +1,6 @@
 'use client';
 import Navbar from '@/components/ui/dashboardLayout/navbar';
 import Sidebar from '@/components/ui/dashboardLayout/sidebar';
-
 import { useEffect, useState } from 'react';
 
 export default function DashboardLayout({
@@ -18,9 +17,21 @@ export default function DashboardLayout({
       }
     };
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsSidebarOpen(false);
+      }
+    };
+
     handleResize();
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    if (isSidebarOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const toggleSidebar = () => {
