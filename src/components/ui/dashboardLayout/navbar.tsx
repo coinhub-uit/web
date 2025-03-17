@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import ToggleThemesButton from '../themes/toggleThemesButton';
 import { menuItems } from './menu';
 import { usePathname } from 'next/navigation';
+import { LuLogOut } from 'react-icons/lu';
+import Image from 'next/image';
 
 interface NavbarProps {
   toggleSidebar: () => void;
@@ -73,27 +75,22 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }: NavbarProps) => {
           className="btn btn-ghost btn-circle avatar"
         >
           <div className="w-10 rounded-full">
-            <img
-              alt="Tailwind CSS Navbar component"
-              src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+            <Image
+              alt="avatar"
+              src="/images/avatar.jpg"
+              width={20}
+              height={20}
             />
           </div>
         </div>
         <ul
           tabIndex={0}
-          className="menu menu-sm dropdown-content rounded-box bg-base-100 z-[1] mt-3 w-52 p-2 shadow"
+          className="menu menu-sm dropdown-content rounded-box bg-base-100 z-[1] mt-3 w-40 p-2 shadow"
         >
           <li>
-            <a className="justify-between">
-              Profile
-              <span className="badge">New</span>
+            <a className="flex items-center justify-between text-lg font-semibold">
+              Logout <LuLogOut size={20} />
             </a>
-          </li>
-          <li>
-            <a>Settings</a>
-          </li>
-          <li>
-            <a>Logout</a>
           </li>
         </ul>
       </div>
