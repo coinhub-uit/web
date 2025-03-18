@@ -3,8 +3,7 @@ import { useEffect, useState } from 'react';
 import ToggleThemesButton from '../themes/toggleThemesButton';
 import { menuItems } from './menu';
 import { usePathname } from 'next/navigation';
-import { LuLogOut } from 'react-icons/lu';
-import Image from 'next/image';
+import { LuLogOut, LuUserRound } from 'react-icons/lu';
 
 interface NavbarProps {
   toggleSidebar: () => void;
@@ -72,15 +71,10 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }: NavbarProps) => {
         <div
           tabIndex={0}
           role="button"
-          className="btn btn-ghost btn-circle avatar"
+          className="btn btn-ghost btn-circle flex items-center justify-center border border-3 border-current"
         >
-          <div className="w-10 rounded-full">
-            <Image
-              alt="avatar"
-              src="/images/avatar.jpg"
-              width={20}
-              height={20}
-            />
+          <div className="flex w-10 items-center justify-center rounded-full">
+            <LuUserRound size={34} />
           </div>
         </div>
         <ul
