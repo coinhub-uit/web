@@ -30,7 +30,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }: NavbarProps) => {
   }, []);
 
   return (
-    <div className="navbar bg-base-100 shadow-sm">
+    <div className="navbar bg-base-100 border-base-200 border-b shadow-sm">
       <div className="flex items-center">
         {isSmallScreen && (
           <button

@@ -53,9 +53,9 @@ export default function DashboardLayout({
           onClick={() => setIsSidebarOpen(false)}
         ></div>
       )}
-      <div className="flex flex-grow flex-col bg-blue-100">
+      <div className="bg-base-200 flex flex-grow flex-col">
         <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-        <div className="flex-grow p-4">{children}</div>
+        <div className="flex-grow overflow-auto p-4">{children}</div>
       </div>
     </div>
   );
