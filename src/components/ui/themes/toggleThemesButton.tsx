@@ -5,7 +5,7 @@ export default function ToggleThemesButton() {
   const { isDark, toggleThemes } = useToggleThemes();
 
   return (
-    <label className="swap swap-rotate">
+    <label className="swap swap-rotate" aria-label="Toggle theme">
       <input
         type="checkbox"
         checked={isDark}
