@@ -3,7 +3,6 @@ import { LuHouse, LuUsers, LuPiggyBank, LuChartPie } from 'react-icons/lu';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-// TODO: don't hard code routes
 export const menuItems = [
   {
     icon: LuHouse,
