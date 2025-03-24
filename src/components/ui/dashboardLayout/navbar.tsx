@@ -68,14 +68,14 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }: NavbarProps) => {
       </text>
       <ToggleThemesButton />
       <div className="dropdown dropdown-end mr-3 ml-3">
-        <div
+        <input
           role="button"
           className="btn btn-ghost btn-circle flex items-center justify-center border border-3 border-current"
         >
           <div className="flex w-10 items-center justify-center rounded-full">
             <LuUserRound size={34} />
           </div>
-        </div>
+        </input>
         <ul className="menu menu-sm dropdown-content rounded-box bg-base-100 z-[1] mt-3 w-40 p-2 shadow">
           <li>
             <a className="flex items-center justify-between text-lg font-semibold">
