@@ -51,6 +51,9 @@ export default function DashboardLayout({
         <div
           className="fixed inset-0 z-40 bg-black/10 backdrop-blur-sm md:hidden"
           onClick={() => setIsSidebarOpen(false)}
+          onKeyDown={(e) => e.key === 'Escape' && setIsSidebarOpen(false)}
+          role="button"
+          tabIndex={0}
         ></div>
       )}
       <div className="bg-base-200 flex flex-grow flex-col">
