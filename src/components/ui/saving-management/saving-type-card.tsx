@@ -1,3 +1,7 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+
 interface SavingCardProps {
   name: string;
   interestRate: number;
@@ -5,6 +9,8 @@ interface SavingCardProps {
 }
 
 const SavingCard = ({ name, interestRate, minDeposit }: SavingCardProps) => {
+  const router = useRouter();
+
   return (
     <div>
       <div className="card bg-base-100 mb-5 w-full shadow-sm">
@@ -17,7 +23,16 @@ const SavingCard = ({ name, interestRate, minDeposit }: SavingCardProps) => {
             Minimum deposit: {minDeposit} VND
           </span>
           <div className="card-actions justify-end">
-            <button className="btn btn-primary">Edit</button>
+            <button
+              className="btn btn-primary"
+              onClick={() =>
+                router.push(
+                  `/saving-management/edit/${encodeURIComponent(name)}`,
+                )
+              }
+            >
+              Edit
+            </button>
           </div>
         </div>
       </div>
