@@ -63,19 +63,17 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }: NavbarProps) => {
           </button>
         )}
       </div>
-      <text className="ml-5 flex-1 text-2xl font-semibold">
+      <span className="ml-5 flex-1 text-2xl font-semibold">
         {mounted ? currentPage?.label : 'Dashboard'}
-      </text>
+      </span>
       <ToggleThemesButton />
       <div className="dropdown dropdown-end mr-3 ml-3">
-        <input
+        <button
           role="button"
           className="btn btn-ghost btn-circle flex items-center justify-center border border-3 border-current"
         >
-          <div className="flex w-10 items-center justify-center rounded-full">
-            <LuUserRound size={34} />
-          </div>
-        </input>
+          <LuUserRound size={34} />
+        </button>
         <ul className="menu menu-sm dropdown-content rounded-box bg-base-100 z-[1] mt-3 w-40 p-2 shadow">
           <li>
             <a className="flex items-center justify-between text-lg font-semibold">
