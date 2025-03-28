@@ -13,7 +13,7 @@ const SavingCard = ({ name, interestRate, minDeposit }: SavingCardProps) => {
 
   return (
     <div>
-      <div className="card bg-base-100 mb-5 w-full shadow-sm">
+      <div className="card bg-base-100 w-full shadow-sm">
         <div className="card-body">
           <h2 className="card-title">{name}</h2>
           <span className="text-base-content">
