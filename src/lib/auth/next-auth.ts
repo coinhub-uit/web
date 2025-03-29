@@ -1,13 +1,24 @@
-import NextAuth, { CredentialsSignin, Session } from 'next-auth';
-import { NextRequest, NextResponse } from 'next/server';
+import NextAuth, {
+  AuthValidity,
+  BackendJWT,
+  CredentialsSignin,
+  DecodedAccessJWT,
+  DecodedRefreshJWT,
+  Session,
+  User,
+  UserInfo,
+} from 'next-auth';
+import { NextRequest } from 'next/server';
 import Credentials from 'next-auth/providers/credentials';
-import { API_URL_REFRESH_ACCESS_TOKEN } from '@/constants/api-urls';
+import {
+  API_URL_REFRESH_ACCESS_TOKEN,
+  API_URL_SIGNIN,
+} from '@/constants/api-urls';
 import { redirect } from 'next/navigation';
+import { jwtDecode } from 'jwt-decode';
+import { JWT } from 'next-auth/jwt';
 
 const PUBLIC_ROUTES = ['/'];
-
-// TODO: Should declare custom error page for handling more error, and show more specific
-// If so... have to split root layout?
 
 class BadServerError extends CredentialsSignin {
   code = 'Bad server error';
@@ -17,19 +28,25 @@ class BadClientError extends CredentialsSignin {
   code = 'Bad client error';
 }
 
-export async function refreshAccessToken(accessToken: string) {
-  // TODO: Sending refresh token as header or body?
+export async function refreshAccessToken(nextAuthJWTCookie: JWT) {
   const response: Response = await fetch(API_URL_REFRESH_ACCESS_TOKEN, {
     cache: 'no-store',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ accessToken }),
+    body: nextAuthJWTCookie.tokens.refreshToken,
   });
   if (!response.ok) {
     redirect('/api/auth/signin');
   }
+
+  const backendJwt: BackendJWT = await response.json();
+  const { exp }: DecodedAccessJWT = jwtDecode(backendJwt.accessToken);
+  nextAuthJWTCookie.validity.valid_until = exp;
+  nextAuthJWTCookie.tokens.token = backendJwt.accessToken;
+  nextAuthJWTCookie.tokens.refreshToken = backendJwt.refreshToken;
+  return { ...nextAuthJWTCookie };
 }
 
 export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
@@ -41,17 +58,17 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       },
       // this function is called when using credentials provider
       authorize: async (credentials) => {
-        const response: Response = await fetch(
-          process.env.API_SERVER_URL || '',
-          {
-            cache: 'no-store',
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(credentials),
+        const response: Response = await fetch(API_URL_SIGNIN, {
+          cache: 'no-store',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-        );
+          body: JSON.stringify({
+            username: credentials.username,
+            password: credentials.password,
+          }),
+        });
 
         if (response.status >= 500) {
           throw new BadServerError();
@@ -62,14 +79,56 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         }
 
         if (!response.ok) {
-          throw new Error('Invalid credentials. Check again your credentials.');
+          throw new CredentialsSignin(
+            'Invalid credentials. Check again your credentials.',
+          );
         }
+        const tokens: BackendJWT = await response.json();
 
-        return (await response.json()) ?? null;
+        const accessToken: DecodedAccessJWT = jwtDecode(tokens.accessToken);
+        const refreshToken: DecodedRefreshJWT = jwtDecode(tokens.refreshToken);
+
+        try {
+          const userInfo: UserInfo = {
+            username: accessToken.sub,
+          };
+
+          const validity: AuthValidity = {
+            valid_until: accessToken.exp,
+            refresh_until: refreshToken.exp,
+          };
+
+          const user: User = {
+            tokens,
+            userInfo,
+            validity,
+          };
+          return user;
+        } catch (e) {
+          console.error('Error decoding tokens', e);
+          return null;
+        }
       },
     }),
   ],
+
+  // This is not need to be equal to the backend. It will refresh the new session. But it need to be less than the backend
+  session: {
+    strategy: 'jwt',
+    maxAge: 4 * 60, // 4 minutes
+    updateAge: 30 * 60, // 30 minutes
+  },
+
   callbacks: {
+    // Allow redirect if the URL started with basedUrl
+    redirect: async ({ url, baseUrl }) => {
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) {
+        return url;
+      }
+      return baseUrl;
+    },
+
     authorized: async ({
       auth,
       request,
@@ -78,20 +137,47 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       request: NextRequest;
     }) => {
       const path: string = request.nextUrl.pathname;
-      if (PUBLIC_ROUTES.includes(path)) {
-        return NextResponse.next();
+      console.debug('auth', auth);
+      return PUBLIC_ROUTES.includes(path) || !!auth;
+      // TODO: Clean up this or refactor this
+
+      // if (!!auth && path === '/api/auth/signin') {
+      //   const url: URL = new URL('/', request.nextUrl.origin);
+      //   return NextResponse.redirect(url);
+      // }
+      // if (!auth && path === '/api/auth/signout') {
+      //   const url: URL = new URL('/api/auth/signin', request.nextUrl.origin);
+      //   return NextResponse.redirect(url);
+      // }
+      // const url: URL = new URL('/api/auth/signin', request.nextUrl.origin);
+      // url.searchParams.set('callbackUrl', path);
+      // return NextResponse.redirect(url);
+    },
+
+    jwt: async ({ token, user, account }) => {
+      // Initial signin contains a 'User' object from authorize method
+      // Or token is still valid
+      if (user && account) {
+        console.debug('User from first', user);
+        console.debug('token from first', token);
+        return { ...token, ...user } as JWT;
       }
-      if (!!auth && path === '/api/auth/signin') {
-        const url: URL = new URL('/', request.nextUrl.origin);
-        return NextResponse.redirect(url);
+
+      if (Date.now() < token.validity.valid_until * 1000) {
+        console.debug('Token is still valid', token);
+        return { ...token } as JWT;
       }
-      if (!auth && path === '/api/auth/signout') {
-        const url: URL = new URL('/api/auth/signin', request.nextUrl.origin);
-        return NextResponse.redirect(url);
+
+      // The refresh token is still valid
+      if (Date.now() < token.validity.refresh_until * 1000) {
+        return await refreshAccessToken(token);
       }
-      const url: URL = new URL('/api/auth/signin', request.nextUrl.origin);
-      url.searchParams.set('callbackUrl', path);
-      return NextResponse.redirect(url);
+
+      return null;
+    },
+
+    session: async ({ session }) => {
+      return { username: session.username } as Session;
     },
   },
 });
