@@ -34,16 +34,22 @@ export async function refreshAccessToken(nextAuthJWTCookie: JWT) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${nextAuthJWTCookie.tokens.token}`,
     },
-    body: nextAuthJWTCookie.tokens.refreshToken,
   });
   if (!response.ok) {
     redirect('/api/auth/signin');
   }
 
   const backendJwt: BackendJWT = await response.json();
-  const { exp }: DecodedAccessJWT = jwtDecode(backendJwt.accessToken);
-  nextAuthJWTCookie.validity.valid_until = exp;
+  const { exp: accessExp }: DecodedAccessJWT = jwtDecode(
+    backendJwt.accessToken,
+  );
+  const { exp: refreshExp }: DecodedAccessJWT = jwtDecode(
+    backendJwt.refreshToken,
+  );
+  nextAuthJWTCookie.validity.valid_until = accessExp;
+  nextAuthJWTCookie.validity.refresh_until = refreshExp;
   nextAuthJWTCookie.tokens.token = backendJwt.accessToken;
   nextAuthJWTCookie.tokens.refreshToken = backendJwt.refreshToken;
   return { ...nextAuthJWTCookie };
@@ -91,6 +97,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         try {
           const userInfo: UserInfo = {
             username: accessToken.sub,
+            accessToken: tokens.accessToken,
           };
 
           const validity: AuthValidity = {
@@ -137,7 +144,6 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       request: NextRequest;
     }) => {
       const path: string = request.nextUrl.pathname;
-      console.debug('auth', auth);
       return PUBLIC_ROUTES.includes(path) || !!auth;
       // TODO: Clean up this or refactor this
 
@@ -158,13 +164,10 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       // Initial signin contains a 'User' object from authorize method
       // Or token is still valid
       if (user && account) {
-        console.debug('User from first', user);
-        console.debug('token from first', token);
         return { ...token, ...user } as JWT;
       }
 
       if (Date.now() < token.validity.valid_until * 1000) {
-        console.debug('Token is still valid', token);
         return { ...token } as JWT;
       }
 
@@ -176,8 +179,9 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       return null;
     },
 
-    session: async ({ session }) => {
-      return { username: session.username } as Session;
+    session: async ({ session, token }) => {
+      session.user = { ...session.user, ...token.userInfo };
+      return session;
     },
   },
 });
