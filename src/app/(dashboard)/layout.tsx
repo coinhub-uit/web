@@ -1,4 +1,5 @@
 'use client';
+
 import Navbar from '@/components/ui/dashboardLayout/navbar';
 import Sidebar from '@/components/ui/dashboardLayout/sidebar';
 import { useEffect, useState } from 'react';

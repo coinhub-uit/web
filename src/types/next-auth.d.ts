@@ -7,6 +7,7 @@ declare module 'next-auth' {
    */
   export interface UserInfo {
     username: string;
+    accessToken: string;
   }
 
   /**
@@ -67,8 +68,9 @@ declare module 'next-auth' {
    * callback and also the shape received as a prop on the SessionProvider
    * React Context
    */
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-  export interface Session extends UserInfo {}
+  export interface Session {
+    user: UserInfo;
+  }
 }
 
 declare module 'next-auth/jwt' {
