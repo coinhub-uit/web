@@ -1,21 +1,21 @@
 export const savingsTypes = [
   {
-    name: 'Online Flexible Deposit',
+    name: '1 - 2 months',
     interestRate: 4.9,
     minDeposit: 100000,
   },
   {
-    name: 'End-of-term interest Deposit',
+    name: '3 - 5 months',
     interestRate: 5.0,
     minDeposit: 500000,
   },
   {
-    name: 'Flexible monthly interest',
+    name: '6 - 11 months',
     interestRate: 7.0,
     minDeposit: 1000000,
   },
   {
-    name: 'Monthly interest Deposit',
+    name: '12 - 36 months',
     interestRate: 5.6,
     minDeposit: 500000,
   },
