@@ -5,10 +5,9 @@ import { useRouter } from 'next/navigation';
 interface SavingCardProps {
   name: string;
   interestRate: number;
-  minDeposit: number;
 }
 
-const SavingCard = ({ name, interestRate, minDeposit }: SavingCardProps) => {
+const SavingCard = ({ name, interestRate }: SavingCardProps) => {
   const router = useRouter();
 
   return (
@@ -18,9 +17,6 @@ const SavingCard = ({ name, interestRate, minDeposit }: SavingCardProps) => {
           <h2 className="card-title">{name}</h2>
           <span className="text-base-content">
             Interest rate: {interestRate}% per year
-          </span>
-          <span className="text-base-content">
-            Minimum deposit: {minDeposit} VND
           </span>
           <div className="card-actions justify-end">
             <button

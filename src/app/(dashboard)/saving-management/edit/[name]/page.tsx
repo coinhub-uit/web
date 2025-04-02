@@ -11,7 +11,6 @@ export default function EditSavingPage() {
   const [saving, setSaving] = useState<{
     name: string;
     interestRate: number;
-    minDeposit: number;
   } | null>(null);
 
   useEffect(() => {
@@ -49,13 +48,6 @@ export default function EditSavingPage() {
         type="number"
         className="input input-bordered mb-4 w-full"
         defaultValue={saving.interestRate}
-      />
-
-      <label className="mb-2 block">Minimum Deposit:</label>
-      <input
-        type="number"
-        className="input input-bordered mb-4 w-full"
-        defaultValue={saving.minDeposit}
       />
 
       <label className="mb-2 block">Effective Date:</label>
