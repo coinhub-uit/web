@@ -122,8 +122,8 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
   // This is not need to be equal to the backend. It will refresh the new session. But it need to be less than the backend
   session: {
     strategy: 'jwt',
-    maxAge: 4 * 60, // 4 minutes
-    updateAge: 30 * 60, // 30 minutes
+    maxAge: 60 * 60 - 60, // 1h - 1m
+    updateAge: 7 * 24 * 60 * 60 - 60, // 7d - 1m
   },
 
   callbacks: {
