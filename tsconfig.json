@@ -31,5 +31,6 @@
     ".next/types/**/*.ts",
     "tailwind.config.ts"
   ],
+  "types": ["@cloudflare/workers-types/2025-04-03"],
   "exclude": ["node_modules"]
 }

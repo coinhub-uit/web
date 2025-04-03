@@ -4,3 +4,7 @@ declare namespace NodeJS {
     NEXT_PUBLIC_API_SERVER_URL: string;
   }
 }
+
+interface CloudflareEnv {
+  NEXT_PUBLIC_API_SERVER_URL: string;
+}
