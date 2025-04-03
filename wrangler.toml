@@ -2,7 +2,3 @@ name = "coinhub-web"
 compatibility_date = "2025-04-03"
 compatibility_flags = ["nodejs_compat", "nodejs_compat_populate_process_env"]
 pages_build_output_dir = ".vercel/output/static"
-
-[[kv_namespaces]]
-binding = "KV"
-id = "a55a9f330f914e5fb1583f93c4a00e05"
