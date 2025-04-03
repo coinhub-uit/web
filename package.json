@@ -15,8 +15,8 @@
     "prepare": "node .husky/install.mjs",
     "commitlint": "commitlint --edit",
     "cloudflare:build": "npx @cloudflare/next-on-pages",
-    "cloudflare:dev": "npx wrangler pages dev",
-    "cloudflare:preview": "npm run cloudflare:build && npm run cloudflare:dev"
+    "cloudflare:serve": "npx wrangler pages dev",
+    "cloudflare:dev": "npm run cloudflare:build && npm run cloudflare:serve"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.6.0",

@@ -1,3 +1,7 @@
+if (!process.env.NEXT_PUBLIC_API_SERVER_URL) {
+  throw new Error('Cannot read API server URL from env');
+}
+
 export const API_URL = process.env.NEXT_PUBLIC_API_SERVER_URL.endsWith('/')
   ? process.env.NEXT_PUBLIC_API_SERVER_URL.slice(0, -1)
   : process.env.NEXT_PUBLIC_API_SERVER_URL;
