@@ -13,7 +13,10 @@
     "format": "prettier --write '*/**/*.{js,jsx,ts,tsx}'",
     "format:check": "prettier '*/**/*.{js,jsx,ts,tsx}'",
     "prepare": "node .husky/install.mjs",
-    "commitlint": "commitlint --edit"
+    "commitlint": "commitlint --edit",
+    "cloudflare:build": "npx @cloudflare/next-on-pages",
+    "cloudflare:dev": "npx wrangler pages dev",
+    "cloudflare:preview": "npm run cloudflare:build && npm run cloudflare:dev"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.6.0",
