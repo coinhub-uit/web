@@ -1,23 +1,43 @@
 'use client';
-import { useRef } from 'react';
-import { useParams } from 'next/navigation';
+
+import { useRef, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { interestMap } from '@/constants/interestMap';
 import { useAppSelector } from '@/lib/hooks/redux';
+import { toast, ToastContainer } from 'react-toastify';
+import { useUpdatePlan } from '@/lib/hooks/usePlans';
 
 export default function EditSavingPage() {
   const modalRef = useRef<HTMLDialogElement | null>(null);
   const params = useParams();
+  const router = useRouter();
   const savingId = params.id ? Number(params.id) : null;
 
   const plan = useAppSelector((state) =>
     state.saving.availablePlans.find((p) => p.planId === savingId),
   );
 
-  if (!plan) return <>Đã xảy ra lỗi khi tải dữ liệu.</>;
+  const [rate, setRate] = useState<string>(plan?.rate?.toString() || '');
+  const { updatePlan, loading } = useUpdatePlan();
+
+  if (!plan) return <>Failed to load data.</>;
 
   const openModal = () => {
-    if (modalRef.current) {
-      modalRef.current.showModal();
+    modalRef.current?.showModal();
+  };
+
+  const handleConfirmSave = async () => {
+    try {
+      await updatePlan(plan.planId, parseFloat(rate));
+      toast.success('Saved successfully!', {
+        onClose: () => {
+          router.push('/saving-management');
+        },
+      });
+      modalRef.current?.close();
+    } catch (error) {
+      console.error('Update failed:', error);
+      toast.error('Failed to save changes.');
     }
   };
 
@@ -30,8 +50,10 @@ export default function EditSavingPage() {
       <label className="mb-2 block">Interest Rate:</label>
       <input
         type="number"
+        step="0.1"
         className="input input-bordered mb-4 w-full"
-        defaultValue={interestInfo.interestRate}
+        value={rate}
+        onChange={(e) => setRate(e.target.value)}
       />
 
       <button className="btn btn-primary w-full" onClick={openModal}>
@@ -43,13 +65,27 @@ export default function EditSavingPage() {
           <h3 className="text-lg font-bold">Confirm Save</h3>
           <p className="py-4">Are you sure you want to save these changes?</p>
           <div className="modal-action">
-            <form method="dialog">
-              <button className="btn mr-3">Cancel</button>
-              <button className="btn btn-primary">Save</button>
+            <form method="dialog" onSubmit={(e) => e.preventDefault()}>
+              <button
+                type="button"
+                className="btn mr-3"
+                onClick={() => modalRef.current?.close()}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleConfirmSave}
+                disabled={loading}
+              >
+                {loading ? 'Saving...' : 'Save'}
+              </button>
             </form>
           </div>
         </div>
       </dialog>
+      <ToastContainer />
     </div>
   );
 }

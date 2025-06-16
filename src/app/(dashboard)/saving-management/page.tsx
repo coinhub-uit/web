@@ -17,7 +17,7 @@ export default function SavingPage() {
     }
   }, [data, dispatch]);
 
-  if (error) return <>Đã xảy ra lỗi khi tải dữ liệu.</>;
+  if (error) return <>Failed to load data.</>;
   if (isLoading) return <>Loading...</>;
 
   return (
