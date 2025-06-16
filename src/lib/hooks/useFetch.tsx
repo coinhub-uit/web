@@ -4,25 +4,36 @@ import useSWR from 'swr';
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 
-async function fetcher(url: string, accessToken: string, init?: RequestInit) {
-  if (!init) {
-    init = {};
-  }
+async function fetcher<T>(
+  url: string,
+  accessToken: string,
+  init?: RequestInit,
+): Promise<T> {
+  if (!init) init = {};
   init.headers = {
     Authorization: `Bearer ${accessToken}`,
+    ...(init.headers || {}),
   };
-  return await (await fetch(url, init)).json();
+
+  const response = await fetch(url, init);
+  if (!response.ok) throw new Error('Failed to fetch');
+  return response.json();
 }
 
-export default function useFetch(url: string, init?: RequestInit) {
-  const { data, status } = useSession({
+export default function useFetch<T>(url: string, init?: RequestInit) {
+  const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
       redirect('api/auth/signin');
     },
   });
-  console.log('data', data);
-  return useSWR(status === 'authenticated' ? url : null, (url) =>
-    fetcher(url, data!.user.accessToken, init),
+
+  const shouldFetch = status === 'authenticated' && session?.user?.accessToken;
+  const swr = useSWR<T>(shouldFetch ? url : null, (url) =>
+    fetcher<T>(url, session!.user.accessToken, init),
   );
+  return {
+    ...swr,
+    isLoading: swr.isLoading || status !== 'authenticated',
+  };
 }

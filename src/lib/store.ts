@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import adminReducer from '@/lib/features/admin/adminSlice';
+import savingReducer from '@/lib/features/saving/savingSlice';
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
       admin: adminReducer,
+      saving: savingReducer,
     },
   });
 };
