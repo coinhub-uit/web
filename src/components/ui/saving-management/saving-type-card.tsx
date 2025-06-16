@@ -3,11 +3,12 @@
 import { useRouter } from 'next/navigation';
 
 interface SavingCardProps {
+  id: number;
   name: string;
   interestRate: number;
 }
 
-const SavingCard = ({ name, interestRate }: SavingCardProps) => {
+const SavingCard = ({ id, name, interestRate }: SavingCardProps) => {
   const router = useRouter();
 
   return (
@@ -21,11 +22,10 @@ const SavingCard = ({ name, interestRate }: SavingCardProps) => {
           <div className="card-actions justify-end">
             <button
               className="btn btn-primary"
-              onClick={() =>
-                router.push(
-                  `/saving-management/edit/${encodeURIComponent(name)}`,
-                )
-              }
+              onClick={() => {
+                console.log('click');
+                router.push(`/saving-management/edit/${id}`);
+              }}
             >
               Edit
             </button>

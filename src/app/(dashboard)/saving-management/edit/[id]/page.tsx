@@ -1,32 +1,19 @@
 'use client';
-import { useRouter, useParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
-import { savingsTypes } from '@/constants/savings';
+import { useRef } from 'react';
+import { useParams } from 'next/navigation';
+import { interestMap } from '@/constants/interestMap';
+import { useAppSelector } from '@/lib/hooks/redux';
 
 export default function EditSavingPage() {
-  const router = useRouter();
-  const params = useParams();
   const modalRef = useRef<HTMLDialogElement | null>(null);
+  const params = useParams();
+  const savingId = params.id ? Number(params.id) : null;
 
-  const [saving, setSaving] = useState<{
-    name: string;
-    interestRate: number;
-  } | null>(null);
+  const plan = useAppSelector((state) =>
+    state.saving.availablePlans.find((p) => p.planId === savingId),
+  );
 
-  useEffect(() => {
-    if (params.name) {
-      const savingName = decodeURIComponent(params.name as string);
-
-      const foundSaving = savingsTypes.find((s) => s.name === savingName);
-      if (foundSaving) {
-        setSaving(foundSaving);
-      } else {
-        router.push('/saving-management');
-      }
-    }
-  }, [params.name, router]);
-
-  if (!saving) return <p>Loading...</p>;
+  if (!plan) return <>Đã xảy ra lỗi khi tải dữ liệu.</>;
 
   const openModal = () => {
     if (modalRef.current) {
@@ -34,24 +21,18 @@ export default function EditSavingPage() {
     }
   };
 
+  const interestInfo = interestMap[plan.days];
+
   return (
     <div className="p-3">
       <h1 className="mb-4 text-2xl font-bold">Edit saving</h1>
-      <label className="mb-2 block">Saving name:</label>
-      <input
-        type="text"
-        className="input input-bordered mb-4 w-full"
-        defaultValue={saving.name}
-      />
+      <label className="mb-2 block">Saving name: {interestInfo.name}</label>
       <label className="mb-2 block">Interest Rate:</label>
       <input
         type="number"
         className="input input-bordered mb-4 w-full"
-        defaultValue={saving.interestRate}
+        defaultValue={interestInfo.interestRate}
       />
-
-      <label className="mb-2 block">Effective Date:</label>
-      <input type="date" className="input input-bordered mb-4 w-full" />
 
       <button className="btn btn-primary w-full" onClick={openModal}>
         Save Changes

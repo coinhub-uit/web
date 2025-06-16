@@ -1,20 +1,24 @@
 'use client';
 
 import SavingCard from '@/components/ui/saving-management/saving-type-card';
-import usePlans from '@/lib/hooks/usePlans';
-
-const interestMap: Record<number, { name: string; interestRate: number }> = {
-  [-1]: { name: 'Không kỳ hạn', interestRate: 1.2 },
-  [30]: { name: '1 tháng', interestRate: 3.5 },
-  [90]: { name: '3 tháng', interestRate: 4.2 },
-  [180]: { name: '6 tháng', interestRate: 5.0 },
-};
+import { interestMap } from '@/constants/interestMap';
+import { setAvailablePlans } from '@/lib/features/saving/savingSlice';
+import { useAppDispatch } from '@/lib/hooks/redux';
+import { useAvailablePlans } from '@/lib/hooks/usePlans';
+import { useEffect } from 'react';
 
 export default function SavingPage() {
-  const { data, error, isLoading } = usePlans();
+  const { data, error, isLoading } = useAvailablePlans();
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (data) {
+      dispatch(setAvailablePlans(data));
+    }
+  }, [data, dispatch]);
 
   if (error) return <>Đã xảy ra lỗi khi tải dữ liệu.</>;
-  if (isLoading) return <>Đang tải...</>;
+  if (isLoading) return <>Loading...</>;
 
   return (
     <div className="grid grid-cols-2 gap-4 p-4">
@@ -24,9 +28,10 @@ export default function SavingPage() {
 
         return (
           <SavingCard
-            key={plan.id}
+            key={plan.planId}
+            id={plan.planId}
             name={interestInfo.name}
-            interestRate={interestInfo.interestRate}
+            interestRate={plan.rate}
           />
         );
       })}
