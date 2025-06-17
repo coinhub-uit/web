@@ -1,4 +1,3 @@
-// Users.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -10,13 +9,20 @@ const Users = () => {
   const [allUsers, setAllUsers] = useState<UserDto[]>([]);
   const [nextUrl, setNextUrl] = useState<string | undefined>(undefined);
   const [nextPageUrl, setNextPageUrl] = useState<string | undefined>(undefined);
+  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+
   const observerRef = useRef<HTMLDivElement | null>(null);
 
   const { users, isLoading, error, links } = useUsers({
     limit: 30,
-    sortBy: ['createdAt:ASC'],
+    sortBy: [`createdAt:${sortOrder}`],
     nextUrl,
   });
+
+  useEffect(() => {
+    setAllUsers([]);
+    setNextUrl(undefined);
+  }, [sortOrder]);
 
   useEffect(() => {
     if (users && users.length > 0) {
@@ -54,10 +60,20 @@ const Users = () => {
     };
   }, [nextPageUrl, isLoading]);
 
-  if (error) return <div>Lỗi: {error.message}</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className="p-4">
+    <div className="space-y-4 p-4">
+      <div className="flex justify-end">
+        <select
+          className="select select-bordered"
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value as 'ASC' | 'DESC')}
+        >
+          <option value="ASC">Create Date Ascending</option>
+          <option value="DESC">Created Date Descending</option>
+        </select>
+      </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {allUsers.map((user: UserDto) => (
           <UserCard key={user.id} {...user} />
