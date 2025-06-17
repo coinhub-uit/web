@@ -1,5 +1,6 @@
 'use client';
 import { UserDto } from '@/types/user';
+import Image from 'next/image';
 
 const UserCard = ({
   fullName,
@@ -15,11 +16,12 @@ const UserCard = ({
         <div className="card-body p-4">
           <div className="flex items-center gap-6">
             <div className="avatar">
-              <div className="h-24 w-24 overflow-hidden rounded-full">
-                <img
+              <div className="relative h-24 w-24 overflow-hidden rounded-full">
+                <Image
                   src={avatar || '/images/avatar.jpg'}
                   alt={fullName}
-                  className="h-24 w-24 rounded-full object-cover"
+                  fill
+                  className="rounded-full object-cover"
                 />
               </div>
             </div>
