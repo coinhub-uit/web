@@ -3,6 +3,7 @@
 import useSWR from 'swr';
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
+import { useMemo } from 'react';
 
 async function fetcher<T>(
   url: string,
@@ -32,8 +33,12 @@ export default function useFetch<T>(url: string, init?: RequestInit) {
   const swr = useSWR<T>(shouldFetch ? url : null, (url) =>
     fetcher<T>(url, session!.user.accessToken, init),
   );
-  return {
-    ...swr,
-    isLoading: swr.isLoading || status !== 'authenticated',
-  };
+
+  return useMemo(
+    () => ({
+      ...swr,
+      isLoading: swr.isLoading || status !== 'authenticated',
+    }),
+    [swr.data, swr.error, swr.isLoading, status],
+  );
 }
