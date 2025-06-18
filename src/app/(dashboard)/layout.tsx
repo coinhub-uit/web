@@ -11,11 +11,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 900) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
+      setIsSidebarOpen(window.innerWidth >= 900);
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -26,14 +22,12 @@ export default function DashboardLayout({
 
     handleResize();
     window.addEventListener('resize', handleResize);
-    if (isSidebarOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
+    window.addEventListener('keydown', handleKeyDown);
+
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('keydown', handleKeyDown);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleSidebar = () => {
@@ -56,7 +50,7 @@ export default function DashboardLayout({
           onKeyDown={(e) => e.key === 'Escape' && setIsSidebarOpen(false)}
           role="button"
           tabIndex={0}
-        ></input>
+        />
       )}
       <div className="bg-base-200 flex max-w-full flex-grow flex-col overflow-x-hidden">
         <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />

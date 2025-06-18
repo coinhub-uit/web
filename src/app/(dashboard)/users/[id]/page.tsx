@@ -1,12 +1,19 @@
 'use client';
 
-import { useUser, useUserSources, useUserTickets } from '@/lib/hooks/useUser';
+import {
+  useUser,
+  useUserSources,
+  useUserTickets,
+  deleteUser,
+} from '@/lib/hooks/useUser';
 import Image from 'next/image';
-import { use } from 'react';
-import { useRef, useState } from 'react';
-import { LuMoveLeft, LuMoveRight } from 'react-icons/lu';
+import { redirect } from 'next/navigation';
+import { use, useRef, useState } from 'react';
 import TicketCard from '@/components/ui/user/ticket-card';
 import SourceCard from '@/components/ui/user/source-card';
+import { useSWRConfig } from 'swr';
+import { API_URL } from '@/constants/api-urls';
+import { useSession } from 'next-auth/react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -14,6 +21,12 @@ interface Props {
 
 export default function UserDetailPage({ params }: Props) {
   const { id } = use(params);
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      redirect('api/auth/signin');
+    },
+  });
   const { user, isLoading: userLoading, error: userError } = useUser(id);
   const {
     tickets,
@@ -25,43 +38,40 @@ export default function UserDetailPage({ params }: Props) {
     isLoading: sourcesLoading,
     error: sourcesError,
   } = useUserSources(id);
+  const sourcesScrollRef = useRef<HTMLDivElement | null>(null);
   const activeScrollRef = useRef<HTMLDivElement | null>(null);
   const closedScrollRef = useRef<HTMLDivElement | null>(null);
-  const sourcesScrollRef = useRef<HTMLDivElement | null>(null);
-  const [canScrollLeftActive, setCanScrollLeftActive] = useState(false);
-  const [canScrollRightActive, setCanScrollRightActive] = useState(true);
-  const [canScrollLeftClosed, setCanScrollLeftClosed] = useState(false);
-  const [canScrollRightClosed, setCanScrollRightClosed] = useState(true);
-  const [canScrollLeftSources, setCanScrollLeftSources] = useState(false);
-  const [canScrollRightSources, setCanScrollRightSources] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const { mutate } = useSWRConfig();
 
-  const checkScroll = (
-    ref: React.RefObject<HTMLDivElement | null>,
-    setLeft: (v: boolean) => void,
-    setRight: (v: boolean) => void,
-  ) => {
-    const el = ref.current;
-    if (!el) return;
-    const { scrollLeft, scrollWidth, clientWidth } = el;
-    setLeft(scrollLeft > 0);
-    setRight(scrollLeft < scrollWidth - clientWidth - 1);
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setDeleteError(null);
   };
 
-  const scroll = (
-    ref: React.RefObject<HTMLDivElement | null>,
-    direction: 'left' | 'right',
-    checkFn: () => void,
-  ) => {
-    const el = ref.current;
-    if (!el) return;
-    el.scrollBy({
-      left: direction === 'left' ? -272 : 272,
-      behavior: 'smooth',
-    });
-    setTimeout(checkFn, 300);
+  const handleDelete = async () => {
+    if (status !== 'authenticated' || !session?.user?.accessToken) {
+      setDeleteError('You must be logged in to delete a user.');
+      return;
+    }
+
+    try {
+      await deleteUser(id, session.user.accessToken);
+      await Promise.all([
+        mutate(`${API_URL}/users`, undefined, { revalidate: true }),
+        mutate(`${API_URL}/users/${id}`, undefined, { revalidate: false }),
+      ]);
+      window.location.href = '/users';
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error ? error.message : 'Failed to delete user',
+      );
+    }
   };
 
-  if (userLoading || ticketsLoading || sourcesLoading) {
+  if (status === 'loading' || userLoading || ticketsLoading || sourcesLoading) {
     return <div className="p-4">Loading...</div>;
   }
 
@@ -81,7 +91,15 @@ export default function UserDetailPage({ params }: Props) {
 
   return (
     <div className="w-full max-w-full overflow-x-hidden p-4">
-      <div className="card bg-base-100 w-full shadow-md">
+      <div className="card bg-base-100 relative w-full shadow-md">
+        <button
+          onClick={openModal}
+          className="btn btn-sm btn-error absolute top-4 right-4 text-white"
+          aria-label="Delete User"
+        >
+          Delete
+        </button>
+
         <div className="card-body flex min-h-[300px] flex-row gap-6 p-6">
           <div className="flex flex-col items-center justify-center gap-2">
             <div className="relative h-40 w-40 overflow-hidden rounded-lg">
@@ -135,6 +153,47 @@ export default function UserDetailPage({ params }: Props) {
         </div>
       </div>
 
+      {isModalOpen && (
+        <div
+          className="modal modal-open"
+          role="dialog"
+          aria-labelledby="modal-title"
+          aria-describedby="modal-description"
+        >
+          <div className="modal-box max-w-md">
+            <h3 id="modal-title" className="text-lg font-bold">
+              Confirm Deletion
+            </h3>
+            <p id="modal-description" className="py-4">
+              Are you sure you want to delete user {user?.fullName || id}?
+            </p>
+            {deleteError && (
+              <p className="text-sm text-red-500">{deleteError}</p>
+            )}
+            <div className="modal-action">
+              <button
+                className="btn btn-error"
+                onClick={handleDelete}
+                aria-label="Confirm Delete"
+              >
+                Yes
+              </button>
+              <button className="btn" onClick={closeModal} aria-label="Cancel">
+                No
+              </button>
+            </div>
+          </div>
+          <div
+            className="modal-backdrop"
+            onClick={closeModal}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Escape' && closeModal()}
+            aria-label="Close modal"
+          />
+        </div>
+      )}
+
       <div className="mt-6 w-full max-w-full">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-semibold">Sources</h2>
@@ -143,48 +202,9 @@ export default function UserDetailPage({ params }: Props) {
           <p className="text-gray-500">No sources found</p>
         ) : (
           <div className="relative max-w-full">
-            <button
-              className={`btn btn-circle btn-sm absolute top-1/2 left-0 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70 ${!canScrollLeftSources ? 'btn-disabled opacity-50' : ''}`}
-              onClick={() =>
-                scroll(sourcesScrollRef, 'left', () =>
-                  checkScroll(
-                    sourcesScrollRef,
-                    setCanScrollLeftSources,
-                    setCanScrollRightSources,
-                  ),
-                )
-              }
-              disabled={!canScrollLeftSources}
-              aria-label="Scroll left"
-            >
-              <LuMoveLeft size={16} />
-            </button>
-            <button
-              className={`btn btn-circle btn-sm absolute top-1/2 right-0 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70 ${!canScrollRightSources ? 'btn-disabled opacity-50' : ''}`}
-              onClick={() =>
-                scroll(sourcesScrollRef, 'right', () =>
-                  checkScroll(
-                    sourcesScrollRef,
-                    setCanScrollLeftSources,
-                    setCanScrollRightSources,
-                  ),
-                )
-              }
-              disabled={!canScrollRightSources}
-              aria-label="Scroll right"
-            >
-              <LuMoveRight size={16} />
-            </button>
             <div
-              className="hide-scrollbar flex min-w-0 snap-x snap-mandatory flex-row gap-4 overflow-x-auto pb-4"
+              className="flex min-w-0 snap-x snap-mandatory flex-row gap-4 overflow-x-auto pb-4"
               ref={sourcesScrollRef}
-              onScroll={() =>
-                checkScroll(
-                  sourcesScrollRef,
-                  setCanScrollLeftSources,
-                  setCanScrollRightSources,
-                )
-              }
             >
               {safeSources.map((source) => (
                 <div
@@ -207,48 +227,9 @@ export default function UserDetailPage({ params }: Props) {
           <p className="text-gray-500">No active tickets found</p>
         ) : (
           <div className="relative max-w-full">
-            <button
-              className={`btn btn-circle btn-sm absolute top-1/2 left-0 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70 ${!canScrollLeftActive ? 'btn-disabled opacity-50' : ''}`}
-              onClick={() =>
-                scroll(activeScrollRef, 'left', () =>
-                  checkScroll(
-                    activeScrollRef,
-                    setCanScrollLeftActive,
-                    setCanScrollRightActive,
-                  ),
-                )
-              }
-              disabled={!canScrollLeftActive}
-              aria-label="Scroll left"
-            >
-              <LuMoveLeft size={16} />
-            </button>
-            <button
-              className={`btn btn-circle btn-sm absolute top-1/2 right-0 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70 ${!canScrollRightActive ? 'btn-disabled opacity-50' : ''}`}
-              onClick={() =>
-                scroll(activeScrollRef, 'right', () =>
-                  checkScroll(
-                    activeScrollRef,
-                    setCanScrollLeftActive,
-                    setCanScrollRightActive,
-                  ),
-                )
-              }
-              disabled={!canScrollRightActive}
-              aria-label="Scroll right"
-            >
-              <LuMoveRight size={16} />
-            </button>
             <div
-              className="hide-scrollbar flex min-w-0 snap-x snap-mandatory flex-row gap-4 overflow-x-auto pb-4"
+              className="flex min-w-0 snap-x snap-mandatory flex-row gap-4 overflow-x-auto pb-4"
               ref={activeScrollRef}
-              onScroll={() =>
-                checkScroll(
-                  activeScrollRef,
-                  setCanScrollLeftActive,
-                  setCanScrollRightActive,
-                )
-              }
             >
               {activeTickets.map((ticket) => (
                 <div
@@ -271,48 +252,9 @@ export default function UserDetailPage({ params }: Props) {
           <p className="text-gray-500">No closed tickets found</p>
         ) : (
           <div className="relative max-w-full">
-            <button
-              className={`btn btn-circle btn-sm absolute top-1/2 left-0 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70 ${!canScrollLeftClosed ? 'btn-disabled opacity-50' : ''}`}
-              onClick={() =>
-                scroll(closedScrollRef, 'left', () =>
-                  checkScroll(
-                    closedScrollRef,
-                    setCanScrollLeftClosed,
-                    setCanScrollRightClosed,
-                  ),
-                )
-              }
-              disabled={!canScrollLeftClosed}
-              aria-label="Scroll left"
-            >
-              <LuMoveLeft size={16} />
-            </button>
-            <button
-              className={`btn btn-circle btn-sm absolute top-1/2 right-0 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70 ${!canScrollRightClosed ? 'btn-disabled opacity-50' : ''}`}
-              onClick={() =>
-                scroll(closedScrollRef, 'right', () =>
-                  checkScroll(
-                    closedScrollRef,
-                    setCanScrollLeftClosed,
-                    setCanScrollRightClosed,
-                  ),
-                )
-              }
-              disabled={!canScrollRightClosed}
-              aria-label="Scroll right"
-            >
-              <LuMoveRight size={16} />
-            </button>
             <div
-              className="hide-scrollbar flex min-w-0 snap-x snap-mandatory flex-row gap-4 overflow-x-auto pb-4"
+              className="flex min-w-0 snap-x snap-mandatory flex-row gap-4 overflow-x-auto pb-4"
               ref={closedScrollRef}
-              onScroll={() =>
-                checkScroll(
-                  closedScrollRef,
-                  setCanScrollLeftClosed,
-                  setCanScrollRightClosed,
-                )
-              }
             >
               {closedTickets.map((ticket) => (
                 <div

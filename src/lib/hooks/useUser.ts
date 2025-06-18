@@ -98,3 +98,35 @@ export function useUserSources(id: string): UseUserSourcesResponse {
     };
   }, [raw]);
 }
+
+export async function deleteUser(
+  id: string,
+  accessToken: string,
+): Promise<void> {
+  if (!accessToken) {
+    throw new Error('No authentication token provided. Please log in.');
+  }
+
+  const url = `${API_URL}/users/${id}`;
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message ||
+          `Failed to delete user with ID ${id} (Status: ${response.status})`,
+      );
+    }
+  } catch (error) {
+    throw new Error(
+      `Error deleting user: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
+  }
+}
