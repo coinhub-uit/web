@@ -6,4 +6,5 @@ export interface UserDto {
   avatar: string;
   address: string;
   createdAt: string;
+  deletedAt: string;
 }

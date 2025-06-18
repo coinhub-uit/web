@@ -44,3 +44,16 @@ export function useUsers(params: {
     [raw.data, raw.isLoading, raw.error],
   );
 }
+
+export function useUser(id: string) {
+  const url = `${API_URL}/users/${id}`;
+  const raw = useFetch<UserDto>(url);
+
+  return useMemo(
+    () => ({
+      ...raw,
+      user: raw.data,
+    }),
+    [raw.data, raw.isLoading, raw.error],
+  );
+}
