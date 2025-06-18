@@ -2,6 +2,7 @@ import { API_URL } from '@/constants/api-urls';
 import useFetch from './useFetch';
 import { UserDto } from '@/types/user';
 import { useMemo } from 'react';
+import { TicketDto } from '@/types/ticket';
 
 interface UserListResponse {
   data: UserDto[];
@@ -15,6 +16,15 @@ interface UserListResponse {
     next?: string;
   };
 }
+
+export type UseUserTicketsResponse = {
+  tickets: TicketDto[] | undefined;
+  isLoading: boolean;
+  data: TicketDto[] | undefined;
+  error: unknown;
+  mutate: unknown;
+  isValidating: boolean;
+};
 
 export function useUsers(params: {
   page?: number;
@@ -31,29 +41,38 @@ export function useUsers(params: {
   }
 
   const url = params.nextUrl || `${API_URL}/users?${query.toString()}`;
-
   const raw = useFetch<UserListResponse>(url);
 
-  return useMemo(
-    () => ({
+  return useMemo(() => {
+    return {
       ...raw,
       users: raw.data?.data,
       meta: raw.data?.meta,
       links: raw.data?.links,
-    }),
-    [raw.data, raw.isLoading, raw.error],
-  );
+    };
+  }, [raw]);
 }
 
 export function useUser(id: string) {
   const url = `${API_URL}/users/${id}`;
   const raw = useFetch<UserDto>(url);
 
-  return useMemo(
-    () => ({
+  return useMemo(() => {
+    return {
       ...raw,
       user: raw.data,
-    }),
-    [raw.data, raw.isLoading, raw.error],
-  );
+    };
+  }, [raw]);
+}
+
+export function useUserTickets(id: string): UseUserTicketsResponse {
+  const url = `${API_URL}/users/${id}/tickets`;
+  const raw = useFetch<TicketDto[]>(url);
+
+  return useMemo(() => {
+    return {
+      ...raw,
+      tickets: raw.data,
+    };
+  }, [raw]);
 }

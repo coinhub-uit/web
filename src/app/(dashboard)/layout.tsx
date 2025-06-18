@@ -41,7 +41,7 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen max-w-full overflow-x-hidden">
       <aside
         className={`bg-base-100 fixed inset-y-0 left-0 z-50 w-64 min-w-[200px] p-4 shadow-lg transition-transform duration-500 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -58,9 +58,11 @@ export default function DashboardLayout({
           tabIndex={0}
         ></input>
       )}
-      <div className="bg-base-200 flex flex-grow flex-col">
+      <div className="bg-base-200 flex max-w-full flex-grow flex-col overflow-x-hidden">
         <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-        <div className="flex-grow overflow-auto p-4">{children}</div>
+        <div className="max-w-full flex-grow overflow-auto overflow-x-hidden p-4">
+          {children}
+        </div>
       </div>
     </div>
   );
