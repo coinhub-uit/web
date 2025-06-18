@@ -17,7 +17,7 @@ export default function EditSavingPage() {
     state.saving.availablePlans.find((p) => p.planId === savingId),
   );
 
-  const [rate, setRate] = useState<string>(plan?.rate?.toString() || '');
+  const [rate, setRate] = useState<string>(plan?.rate?.toString() ?? '');
   const { updatePlan, loading } = useUpdatePlan();
 
   if (!plan) return <>Failed to load data.</>;
@@ -47,8 +47,11 @@ export default function EditSavingPage() {
     <div className="p-3">
       <h1 className="mb-4 text-2xl font-bold">Edit saving</h1>
       <label className="mb-2 block">Saving name: {interestInfo.name}</label>
-      <label className="mb-2 block">Interest Rate:</label>
+      <label htmlFor="interest-rate" className="mb-2 block">
+        Interest Rate:
+      </label>
       <input
+        id="interest-rate"
         type="number"
         step="0.1"
         className="input input-bordered mb-4 w-full"
