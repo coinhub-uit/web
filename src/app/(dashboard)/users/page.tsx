@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import UserCard from '@/components/ui/user/user-card';
 import { useUsers } from '@/lib/hooks/useUser';
 import { UserDto } from '@/types/user';
@@ -10,7 +10,6 @@ const Users = () => {
   const [nextUrl, setNextUrl] = useState<string | undefined>(undefined);
   const [nextPageUrl, setNextPageUrl] = useState<string | undefined>(undefined);
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
-
   const observerRef = useRef<HTMLDivElement | null>(null);
 
   const { users, isLoading, error, links } = useUsers({
@@ -19,38 +18,40 @@ const Users = () => {
     nextUrl,
   });
 
-  useEffect(() => {
+  const resetUsers = useCallback(() => {
     setAllUsers([]);
     setNextUrl(undefined);
-  }, [sortOrder]);
+  }, []);
 
-  useEffect(() => {
-    if (users && users.length > 0) {
-      setAllUsers((prevUsers) => {
-        const newUsers = users.filter(
-          (user) => !prevUsers.some((prevUser) => prevUser.id === user.id),
-        );
-        return [...prevUsers, ...newUsers];
-      });
-    }
-  }, [users]);
+  const updateUsers = useCallback((newUsers: UserDto[] | undefined) => {
+    if (!newUsers || newUsers.length === 0) return;
+    setAllUsers((prevUsers) => {
+      const uniqueUsers = newUsers.filter(
+        (user) => !prevUsers.some((prevUser) => prevUser.id === user.id),
+      );
+      return [...prevUsers, ...uniqueUsers];
+    });
+  }, []);
 
-  useEffect(() => {
-    setNextPageUrl(links?.next);
-  }, [links]);
+  const updateNextPageUrl = useCallback((newLinks: typeof links) => {
+    setNextPageUrl(newLinks?.next);
+  }, []);
 
-  useEffect(() => {
+  const handleIntersection = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      if (entries[0].isIntersecting && !isLoading && nextPageUrl) {
+        setNextUrl(nextPageUrl);
+      }
+    },
+    [isLoading, nextPageUrl],
+  );
+
+  const setupInfiniteScroll = useCallback(() => {
     if (!observerRef.current || !nextPageUrl || isLoading) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isLoading) {
-          setNextUrl(nextPageUrl);
-        }
-      },
-      { threshold: 1.0 },
-    );
-
+    const observer = new IntersectionObserver(handleIntersection, {
+      threshold: 1.0,
+    });
     observer.observe(observerRef.current);
 
     return () => {
@@ -58,7 +59,24 @@ const Users = () => {
         observer.unobserve(observerRef.current);
       }
     };
-  }, [nextPageUrl, isLoading]);
+  }, [handleIntersection, isLoading, nextPageUrl]);
+
+  useEffect(() => {
+    resetUsers();
+  }, [resetUsers, sortOrder]);
+
+  useEffect(() => {
+    updateUsers(users);
+  }, [updateUsers, users]);
+
+  useEffect(() => {
+    updateNextPageUrl(links);
+  }, [updateNextPageUrl, links]);
+
+  useEffect(() => {
+    const cleanup = setupInfiniteScroll();
+    return cleanup || (() => {});
+  }, [setupInfiniteScroll]);
 
   if (error) return <div>Error: {error.message}</div>;
 
