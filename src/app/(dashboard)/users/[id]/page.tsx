@@ -1,11 +1,12 @@
 'use client';
 
-import { useUser, useUserTickets } from '@/lib/hooks/useUser';
+import { useUser, useUserSources, useUserTickets } from '@/lib/hooks/useUser';
 import Image from 'next/image';
 import { use } from 'react';
 import { useRef, useState } from 'react';
 import { LuMoveLeft, LuMoveRight } from 'react-icons/lu';
 import TicketCard from '@/components/ui/user/ticket-card';
+import SourceCard from '@/components/ui/user/source-card';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -19,12 +20,20 @@ export default function UserDetailPage({ params }: Props) {
     isLoading: ticketsLoading,
     error: ticketsError,
   } = useUserTickets(id);
+  const {
+    sources,
+    isLoading: sourcesLoading,
+    error: sourcesError,
+  } = useUserSources(id);
   const activeScrollRef = useRef<HTMLDivElement | null>(null);
   const closedScrollRef = useRef<HTMLDivElement | null>(null);
+  const sourcesScrollRef = useRef<HTMLDivElement | null>(null);
   const [canScrollLeftActive, setCanScrollLeftActive] = useState(false);
   const [canScrollRightActive, setCanScrollRightActive] = useState(true);
   const [canScrollLeftClosed, setCanScrollLeftClosed] = useState(false);
   const [canScrollRightClosed, setCanScrollRightClosed] = useState(true);
+  const [canScrollLeftSources, setCanScrollLeftSources] = useState(false);
+  const [canScrollRightSources, setCanScrollRightSources] = useState(true);
 
   const checkScroll = (
     ref: React.RefObject<HTMLDivElement | null>,
@@ -52,18 +61,23 @@ export default function UserDetailPage({ params }: Props) {
     setTimeout(checkFn, 300);
   };
 
-  if (userLoading || ticketsLoading) {
+  if (userLoading || ticketsLoading || sourcesLoading) {
     return <div className="p-4">Loading...</div>;
   }
 
-  if (userError || !user || ticketsError) {
-    return <div className="p-4 text-red-500">User or tickets not found</div>;
+  if (userError || !user || ticketsError || sourcesError) {
+    return (
+      <div className="p-4 text-red-500">
+        User, tickets, or sources not found
+      </div>
+    );
   }
 
   const activeTickets =
     tickets?.filter((ticket) => ticket.status === 'active') || [];
   const closedTickets =
     tickets?.filter((ticket) => ticket.status === 'closed') || [];
+  const safeSources = sources || [];
 
   return (
     <div className="w-full max-w-full overflow-x-hidden p-4">
@@ -123,6 +137,70 @@ export default function UserDetailPage({ params }: Props) {
 
       <div className="mt-6 w-full max-w-full">
         <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-2xl font-semibold">Sources</h2>
+        </div>
+        {safeSources.length === 0 ? (
+          <p className="text-gray-500">No sources found</p>
+        ) : (
+          <div className="relative max-w-full">
+            <button
+              className={`btn btn-circle btn-sm absolute top-1/2 left-0 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70 ${!canScrollLeftSources ? 'btn-disabled opacity-50' : ''}`}
+              onClick={() =>
+                scroll(sourcesScrollRef, 'left', () =>
+                  checkScroll(
+                    sourcesScrollRef,
+                    setCanScrollLeftSources,
+                    setCanScrollRightSources,
+                  ),
+                )
+              }
+              disabled={!canScrollLeftSources}
+              aria-label="Scroll left"
+            >
+              <LuMoveLeft size={16} />
+            </button>
+            <button
+              className={`btn btn-circle btn-sm absolute top-1/2 right-0 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70 ${!canScrollRightSources ? 'btn-disabled opacity-50' : ''}`}
+              onClick={() =>
+                scroll(sourcesScrollRef, 'right', () =>
+                  checkScroll(
+                    sourcesScrollRef,
+                    setCanScrollLeftSources,
+                    setCanScrollRightSources,
+                  ),
+                )
+              }
+              disabled={!canScrollRightSources}
+              aria-label="Scroll right"
+            >
+              <LuMoveRight size={16} />
+            </button>
+            <div
+              className="hide-scrollbar flex min-w-0 snap-x snap-mandatory flex-row gap-4 overflow-x-auto pb-4"
+              ref={sourcesScrollRef}
+              onScroll={() =>
+                checkScroll(
+                  sourcesScrollRef,
+                  setCanScrollLeftSources,
+                  setCanScrollRightSources,
+                )
+              }
+            >
+              {safeSources.map((source) => (
+                <div
+                  key={source.id}
+                  className="w-48 flex-shrink-0 snap-start sm:w-64"
+                >
+                  <SourceCard source={source} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 w-full max-w-full">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-semibold">Active Tickets</h2>
         </div>
         {activeTickets.length === 0 ? (
@@ -173,7 +251,10 @@ export default function UserDetailPage({ params }: Props) {
               }
             >
               {activeTickets.map((ticket) => (
-                <div key={ticket.id} className="w-64 flex-shrink-0 snap-start">
+                <div
+                  key={ticket.id}
+                  className="w-48 flex-shrink-0 snap-start sm:w-64"
+                >
                   <TicketCard ticket={ticket} />
                 </div>
               ))}
@@ -234,7 +315,10 @@ export default function UserDetailPage({ params }: Props) {
               }
             >
               {closedTickets.map((ticket) => (
-                <div key={ticket.id} className="w-64 flex-shrink-0 snap-start">
+                <div
+                  key={ticket.id}
+                  className="w-48 flex-shrink-0 snap-start sm:w-64"
+                >
                   <TicketCard ticket={ticket} />
                 </div>
               ))}

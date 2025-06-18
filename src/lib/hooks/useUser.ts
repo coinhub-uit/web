@@ -3,6 +3,7 @@ import useFetch from './useFetch';
 import { UserDto } from '@/types/user';
 import { useMemo } from 'react';
 import { TicketDto } from '@/types/ticket';
+import { SourceDto } from '@/types/source';
 
 interface UserListResponse {
   data: UserDto[];
@@ -21,6 +22,15 @@ export type UseUserTicketsResponse = {
   tickets: TicketDto[] | undefined;
   isLoading: boolean;
   data: TicketDto[] | undefined;
+  error: unknown;
+  mutate: unknown;
+  isValidating: boolean;
+};
+
+export type UseUserSourcesResponse = {
+  sources: SourceDto[] | undefined;
+  isLoading: boolean;
+  data: SourceDto[] | undefined;
   error: unknown;
   mutate: unknown;
   isValidating: boolean;
@@ -73,6 +83,18 @@ export function useUserTickets(id: string): UseUserTicketsResponse {
     return {
       ...raw,
       tickets: raw.data,
+    };
+  }, [raw]);
+}
+
+export function useUserSources(id: string): UseUserSourcesResponse {
+  const url = `${API_URL}/users/${id}/sources`;
+  const raw = useFetch<SourceDto[]>(url);
+
+  return useMemo(() => {
+    return {
+      ...raw,
+      sources: raw.data,
     };
   }, [raw]);
 }
