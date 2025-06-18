@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
   // experimental: {
   // typedRoutes: true, // Because using turbopack, cannot use this
   // },
+  images: {
+    domains: [
+      'cloudflare-ipfs.com',
+      'coinhub.up.railway.app',
+      'avatars.githubusercontent.com',
+    ],
+  },
 };
 
 export default nextConfig;

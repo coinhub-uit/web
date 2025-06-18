@@ -1,18 +1,93 @@
 'use client';
 
-import { API_URL } from '@/constants/api-urls';
-import useFetch from '@/lib/hooks/useFetch';
+import { useState, useEffect, useRef } from 'react';
+import UserCard from '@/components/ui/user/user-card';
+import { useUsers } from '@/lib/hooks/useUser';
+import { UserDto } from '@/types/user';
 
 const Users = () => {
-  const { data, error, isLoading } = useFetch(`${API_URL}/admins`);
+  const [allUsers, setAllUsers] = useState<UserDto[]>([]);
+  const [nextUrl, setNextUrl] = useState<string | undefined>(undefined);
+  const [nextPageUrl, setNextPageUrl] = useState<string | undefined>(undefined);
+  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
 
-  if (error) {
-    return <>failed to load</>;
-  }
-  if (isLoading) {
-    return <>...loading</>;
-  }
-  return <div>{JSON.stringify(data)}</div>;
+  const observerRef = useRef<HTMLDivElement | null>(null);
+
+  const { users, isLoading, error, links } = useUsers({
+    limit: 30,
+    sortBy: [`createdAt:${sortOrder}`],
+    nextUrl,
+  });
+
+  useEffect(() => {
+    setAllUsers([]);
+    setNextUrl(undefined);
+  }, [sortOrder]);
+
+  useEffect(() => {
+    if (users && users.length > 0) {
+      setAllUsers((prevUsers) => {
+        const newUsers = users.filter(
+          (user) => !prevUsers.some((prevUser) => prevUser.id === user.id),
+        );
+        return [...prevUsers, ...newUsers];
+      });
+    }
+  }, [users]);
+
+  useEffect(() => {
+    setNextPageUrl(links?.next);
+  }, [links]);
+
+  useEffect(() => {
+    if (!observerRef.current || !nextPageUrl || isLoading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoading) {
+          setNextUrl(nextPageUrl);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    observer.observe(observerRef.current);
+
+    return () => {
+      if (observerRef.current) {
+        observer.unobserve(observerRef.current);
+      }
+    };
+  }, [nextPageUrl, isLoading]);
+
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div className="space-y-4 p-4">
+      <div className="flex justify-end">
+        <select
+          className="select select-bordered"
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value as 'ASC' | 'DESC')}
+        >
+          <option value="ASC">Create Date Ascending</option>
+          <option value="DESC">Created Date Descending</option>
+        </select>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {allUsers.map((user: UserDto) => (
+          <UserCard key={user.id} {...user} />
+        ))}
+      </div>
+      {isLoading && <div className="mt-4 text-center">Loading...</div>}
+      {nextPageUrl && !isLoading && (
+        <div ref={observerRef} className="h-10"></div>
+      )}
+      {!nextPageUrl && !isLoading && allUsers.length > 0 && (
+        <div className="mt-4 text-center">No more users to load</div>
+      )}
+    </div>
+  );
 };
 
 export default Users;
