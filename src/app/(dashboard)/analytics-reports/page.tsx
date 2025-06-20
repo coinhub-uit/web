@@ -1,9 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useReportsActivity, useReportTicket } from '@/lib/hooks/useReport';
+import {
+  useReportsActivity,
+  useReportTicket,
+  useRevenueTicket,
+} from '@/lib/hooks/useReport';
 import { ActivityDto } from '@/types/activity';
 import { TicketReportDto } from '@/types/ticketReport';
+import { RevenueReportDto } from '@/types/revenue';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -28,7 +33,11 @@ ChartJS.register(
 );
 
 type ViewMode = 'day' | 'month' | 'year';
-type TabType = 'analytics' | 'activityReport' | 'ticketReport';
+type TabType =
+  | 'analytics'
+  | 'activityReport'
+  | 'ticketReport'
+  | 'revenueReport';
 
 interface AggregatedData {
   labels: string[];
@@ -50,17 +59,29 @@ interface TermReport {
   closedCount: number;
 }
 
+interface RevenueTermReport {
+  termType: string;
+  income: number;
+  expense: number;
+  netIncome: number;
+}
+
 const AnalyticsPage = () => {
   const [allActivityData, setAllActivityData] = useState<ActivityDto[]>([]);
   const [allTicketData, setAllTicketData] = useState<TicketReportDto[]>([]);
+  const [allRevenueData, setAllRevenueData] = useState<RevenueReportDto[]>([]);
   const [activityNextUrl, setActivityNextUrl] = useState<string | undefined>(
     undefined,
   );
   const [ticketNextUrl, setTicketNextUrl] = useState<string | undefined>(
     undefined,
   );
+  const [revenueNextUrl, setRevenueNextUrl] = useState<string | undefined>(
+    undefined,
+  );
   const [isFetchingActivity, setIsFetchingActivity] = useState(false);
   const [isFetchingTickets, setIsFetchingTickets] = useState(false);
+  const [isFetchingRevenue, setIsFetchingRevenue] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [activeTab, setActiveTab] = useState<TabType>('analytics');
@@ -87,6 +108,17 @@ const AnalyticsPage = () => {
     limit: 100,
     sortBy: ['date:ASC'],
     nextUrl: ticketNextUrl,
+  });
+
+  const {
+    reports: revenueReports,
+    links: revenueLinks,
+    error: revenueFetchError,
+    isLoading: revenueIsLoading,
+  } = useRevenueTicket({
+    limit: 100,
+    sortBy: ['date:ASC'],
+    nextUrl: revenueNextUrl,
   });
 
   const appendActivityReports = useCallback(
@@ -146,17 +178,54 @@ const AnalyticsPage = () => {
     [],
   );
 
+  const appendRevenueReports = useCallback(
+    (newReports: RevenueReportDto[] | undefined) => {
+      if (!newReports || newReports.length === 0) return;
+
+      const validReports = newReports.filter((report) => {
+        if (!report.date || isNaN(Date.parse(report.date))) return false;
+        if (
+          typeof report.income !== 'string' ||
+          typeof report.expense !== 'string' ||
+          typeof report.netIncome !== 'string'
+        )
+          return false;
+        const income = parseFloat(report.income);
+        const expense = parseFloat(report.expense);
+        const netIncome = parseFloat(report.netIncome);
+        return !isNaN(income) && !isNaN(expense) && !isNaN(netIncome);
+      });
+
+      if (validReports.length === 0) return;
+
+      setAllRevenueData((prev) => {
+        const uniqueReports = validReports.filter(
+          (report) =>
+            !prev.some(
+              (existing) =>
+                existing.date === report.date && existing.days === report.days,
+            ),
+        );
+        return [...prev, ...uniqueReports];
+      });
+    },
+    [],
+  );
+
   useEffect(() => {
-    if (activityFetchError || ticketFetchError) {
+    if (activityFetchError || ticketFetchError || revenueFetchError) {
       setError(
         activityFetchError instanceof Error
           ? activityFetchError.message
           : ticketFetchError instanceof Error
             ? ticketFetchError.message
-            : 'Failed to fetch data',
+            : revenueFetchError instanceof Error
+              ? revenueFetchError.message
+              : 'Failed to fetch data',
       );
       setIsFetchingActivity(false);
       setIsFetchingTickets(false);
+      setIsFetchingRevenue(false);
       return;
     }
     if (activityIsLoading) {
@@ -179,6 +248,16 @@ const AnalyticsPage = () => {
         setIsFetchingTickets(false);
       }
     }
+    if (revenueIsLoading) {
+      setIsFetchingRevenue(true);
+    } else if (revenueReports) {
+      appendRevenueReports(revenueReports);
+      if (revenueLinks?.next) {
+        setRevenueNextUrl(revenueLinks.next);
+      } else {
+        setIsFetchingRevenue(false);
+      }
+    }
   }, [
     activityReports,
     activityLinks,
@@ -188,20 +267,28 @@ const AnalyticsPage = () => {
     ticketLinks,
     ticketFetchError,
     ticketIsLoading,
+    revenueReports,
+    revenueLinks,
+    revenueFetchError,
+    revenueIsLoading,
     appendActivityReports,
     appendTicketReports,
+    appendRevenueReports,
   ]);
 
   const availableYears = useMemo(() => {
     const years = new Set<string>();
-    allTicketData.forEach((item) => {
-      const date = new Date(item.date);
-      if (!isNaN(date.getTime())) {
-        years.add(date.getFullYear().toString());
-      }
+    const datasets = [allTicketData, allRevenueData];
+    datasets.forEach((data) => {
+      data.forEach((item) => {
+        const date = new Date(item.date);
+        if (!isNaN(date.getTime())) {
+          years.add(date.getFullYear().toString());
+        }
+      });
     });
     return Array.from(years).sort((a, b) => Number(a) - Number(b));
-  }, [allTicketData]);
+  }, [allTicketData, allRevenueData]);
 
   const availableMonths = useMemo(() => {
     const months = [
@@ -219,7 +306,7 @@ const AnalyticsPage = () => {
       { value: '12', label: 'December' },
     ];
     return months.filter((month) =>
-      allTicketData.some((item) => {
+      allRevenueData.some((item) => {
         const date = new Date(item.date);
         return (
           !isNaN(date.getTime()) &&
@@ -228,7 +315,7 @@ const AnalyticsPage = () => {
         );
       }),
     );
-  }, [allTicketData, selectedYear]);
+  }, [allRevenueData, selectedYear]);
 
   useEffect(() => {
     if (availableYears.length > 0 && !selectedYear) {
@@ -255,13 +342,13 @@ const AnalyticsPage = () => {
 
         let key: string;
         if (viewMode === 'day') {
-          key = `${date.getDate().toString().padStart(2, '0')}/${(
+          key = `${date.getDate().toString().padStart(2, '0')}-${(
             date.getMonth() + 1
           )
             .toString()
-            .padStart(2, '0')}/${date.getFullYear()}`;
+            .padStart(2, '0')}-${date.getFullYear()}`;
         } else if (viewMode === 'month') {
-          key = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+          key = `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
         } else {
           key = date.getFullYear().toString();
         }
@@ -392,6 +479,46 @@ const AnalyticsPage = () => {
     }));
   }, [allTicketData, selectedYear, selectedMonth]);
 
+  const revenueTermReportData = useMemo(() => {
+    if (!selectedYear || !selectedMonth) return [];
+
+    const termTypes: { [key: number]: string } = {
+      '-1': 'No Term',
+      '30': '1 Month',
+      '90': '3 Months',
+      '180': '6 Months',
+    };
+
+    const termAggregated: { [days: number]: RevenueTermReport } = {};
+    [-1, 30, 90, 180].forEach((days) => {
+      termAggregated[days] = {
+        termType: termTypes[days] || `${days} Days`,
+        income: 0,
+        expense: 0,
+        netIncome: 0,
+      };
+    });
+
+    allRevenueData.forEach((item) => {
+      const date = new Date(item.date);
+      if (isNaN(date.getTime())) return;
+      if (date.getFullYear().toString() !== selectedYear) return;
+      if ((date.getMonth() + 1).toString().padStart(2, '0') !== selectedMonth)
+        return;
+
+      if (termAggregated[item.days]) {
+        termAggregated[item.days].income += parseFloat(item.income);
+        termAggregated[item.days].expense += parseFloat(item.expense);
+        termAggregated[item.days].netIncome += parseFloat(item.netIncome);
+      }
+    });
+
+    return Object.values(termAggregated).map((item) => ({
+      ...item,
+      netIncome: item.netIncome,
+    }));
+  }, [allRevenueData, selectedYear, selectedMonth]);
+
   const getChartData = useCallback(
     (data: number[], label: string, color: string, labels: string[]) => ({
       labels,
@@ -475,6 +602,23 @@ const AnalyticsPage = () => {
       wb,
       `Term_Ticket_Report_${selectedYear}_${selectedMonth}.xlsx`,
     );
+  };
+
+  const exportRevenueToExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(
+      revenueTermReportData.map((row, index) => ({
+        No: index + 1,
+        'Term Type': row.termType,
+        'Income (VND)': Math.round(row.income).toLocaleString('en-US'),
+        'Expense (VND)': Math.round(row.expense).toLocaleString('en-US'),
+        'Difference Income/Expense (VND)': Math.round(
+          row.netIncome,
+        ).toLocaleString('en-US'),
+      })),
+    );
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Revenue Report');
+    XLSX.writeFile(wb, `Revenue_Report_${selectedYear}_${selectedMonth}.xlsx`);
   };
 
   const renderAnalyticsContent = () => (
@@ -662,10 +806,80 @@ const AnalyticsPage = () => {
     </div>
   );
 
+  const renderRevenueReportContent = () => (
+    <div className="card bg-base-100 p-4 shadow-md">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Revenue Report</h2>
+        <div className="flex space-x-2">
+          <select
+            className="select select-bordered"
+            value={selectedYear}
+            onChange={(e) => {
+              setSelectedYear(e.target.value);
+              setSelectedMonth('');
+            }}
+          >
+            <option value="">Choose year</option>
+            {availableYears.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+          <select
+            className="select select-bordered"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            disabled={!selectedYear}
+          >
+            <option value="">Choose month</option>
+            {availableMonths.map((month) => (
+              <option key={month.value} value={month.value}>
+                {month.label}
+              </option>
+            ))}
+          </select>
+          <button
+            className="btn btn-secondary"
+            onClick={exportRevenueToExcel}
+            disabled={!selectedYear || !selectedMonth}
+          >
+            Export Excel
+          </button>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="table w-full">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Term</th>
+              <th>Income (VND)</th>
+              <th>Expense (VND)</th>
+              <th>Difference Income/Expense (VND)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {revenueTermReportData.map((row, index) => (
+              <tr key={row.termType}>
+                <td>{index + 1}</td>
+                <td>{row.termType}</td>
+                <td>{Math.round(row.income).toLocaleString('en-US')}</td>
+                <td>{Math.round(row.expense).toLocaleString('en-US')}</td>
+                <td>{Math.round(row.netIncome).toLocaleString('en-US')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
   if (
-    (isFetchingActivity || isFetchingTickets) &&
+    (isFetchingActivity || isFetchingTickets || isFetchingRevenue) &&
     !allActivityData.length &&
-    !allTicketData.length
+    !allTicketData.length &&
+    !allRevenueData.length
   )
     return <div className="p-4 text-center">Loading...</div>;
   if (error)
@@ -673,8 +887,10 @@ const AnalyticsPage = () => {
   if (
     !allActivityData.length &&
     !allTicketData.length &&
+    !allRevenueData.length &&
     !isFetchingActivity &&
-    !isFetchingTickets
+    !isFetchingTickets &&
+    !isFetchingRevenue
   )
     return <div className="p-4 text-center">There is no data</div>;
 
@@ -702,12 +918,21 @@ const AnalyticsPage = () => {
         >
           Ticket Report
         </a>
+        <a
+          role="tab"
+          className={`tab ${activeTab === 'revenueReport' ? 'tab-active' : ''}`}
+          onClick={() => handleTabChange('revenueReport')}
+        >
+          Revenue Report
+        </a>
       </div>
       {activeTab === 'analytics'
         ? renderAnalyticsContent()
         : activeTab === 'activityReport'
           ? renderActivityReportContent()
-          : renderTicketReportContent()}
+          : activeTab === 'ticketReport'
+            ? renderTicketReportContent()
+            : renderRevenueReportContent()}
     </div>
   );
 };
