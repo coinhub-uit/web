@@ -81,7 +81,7 @@ const Users = () => {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="mx-auto max-w-screen-xl space-y-6 p-4">
       <div className="flex justify-end">
         <select
           className="select select-bordered"
