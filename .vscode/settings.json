@@ -9,5 +9,5 @@
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "typescript.surveys.enabled": false,
   "typescript.tsserver.experimental.enableProjectDiagnostics": true,
-  "cSpell.words": ["Coinhub", "daisyui", "Wordmark"]
+  "cSpell.words": ["chartjs", "Coinhub", "daisyui", "Wordmark"]
 }
