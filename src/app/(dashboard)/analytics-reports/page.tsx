@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useReportsActivity } from '@/lib/hooks/useReport';
+import { useReportsActivity, useReportTicket } from '@/lib/hooks/useReport';
 import { ActivityDto } from '@/types/activity';
+import { TicketReportDto } from '@/types/ticketReport';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -27,7 +28,7 @@ ChartJS.register(
 );
 
 type ViewMode = 'day' | 'month' | 'year';
-type TabType = 'analytics' | 'report';
+type TabType = 'analytics' | 'activityReport' | 'ticketReport';
 
 interface AggregatedData {
   labels: string[];
@@ -36,97 +37,207 @@ interface AggregatedData {
   totalPrincipal: number[];
 }
 
-interface MonthlyReport {
+interface MonthlyActivityReport {
   month: string;
   users: number;
   tickets: number;
   totalPrincipal: number;
 }
 
+interface TermReport {
+  termType: string;
+  openedCount: number;
+  closedCount: number;
+}
+
 const AnalyticsPage = () => {
-  const [allData, setAllData] = useState<ActivityDto[]>([]);
-  const [nextUrl, setNextUrl] = useState<string | undefined>(undefined);
-  const [isFetching, setIsFetching] = useState(false);
+  const [allActivityData, setAllActivityData] = useState<ActivityDto[]>([]);
+  const [allTicketData, setAllTicketData] = useState<TicketReportDto[]>([]);
+  const [activityNextUrl, setActivityNextUrl] = useState<string | undefined>(
+    undefined,
+  );
+  const [ticketNextUrl, setTicketNextUrl] = useState<string | undefined>(
+    undefined,
+  );
+  const [isFetchingActivity, setIsFetchingActivity] = useState(false);
+  const [isFetchingTickets, setIsFetchingTickets] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [activeTab, setActiveTab] = useState<TabType>('analytics');
   const [selectedYear, setSelectedYear] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
 
   const {
-    reports: pageReports,
-    links,
-    error: fetchError,
-    isLoading,
+    reports: activityReports,
+    links: activityLinks,
+    error: activityFetchError,
+    isLoading: activityIsLoading,
   } = useReportsActivity({
     limit: 100,
     sortBy: ['date:ASC'],
-    nextUrl,
+    nextUrl: activityNextUrl,
   });
 
-  const appendReports = useCallback((newReports: ActivityDto[] | undefined) => {
-    if (!newReports || newReports.length === 0) return;
+  const {
+    reports: ticketReports,
+    links: ticketLinks,
+    error: ticketFetchError,
+    isLoading: ticketIsLoading,
+  } = useReportTicket({
+    limit: 100,
+    sortBy: ['date:ASC'],
+    nextUrl: ticketNextUrl,
+  });
 
-    const validReports = newReports.filter((report) => {
-      if (!report.date || isNaN(Date.parse(report.date))) return false;
-      if (
-        typeof report.users !== 'number' ||
-        typeof report.tickets !== 'number'
-      )
-        return false;
-      const principal = parseFloat(report.totalPrincipal);
-      return !isNaN(principal);
-    });
+  const appendActivityReports = useCallback(
+    (newReports: ActivityDto[] | undefined) => {
+      if (!newReports || newReports.length === 0) return;
 
-    if (validReports.length === 0) return;
+      const validReports = newReports.filter((report) => {
+        if (!report.date || isNaN(Date.parse(report.date))) return false;
+        if (
+          typeof report.users !== 'number' ||
+          typeof report.tickets !== 'number'
+        )
+          return false;
+        const principal = parseFloat(report.totalPrincipal);
+        return !isNaN(principal);
+      });
 
-    setAllData((prev) => {
-      const uniqueReports = validReports.filter(
-        (report) => !prev.some((existing) => existing.date === report.date),
-      );
-      return [...prev, ...uniqueReports];
-    });
-  }, []);
+      if (validReports.length === 0) return;
+
+      setAllActivityData((prev) => {
+        const uniqueReports = validReports.filter(
+          (report) => !prev.some((existing) => existing.date === report.date),
+        );
+        return [...prev, ...uniqueReports];
+      });
+    },
+    [],
+  );
+
+  const appendTicketReports = useCallback(
+    (newReports: TicketReportDto[] | undefined) => {
+      if (!newReports || newReports.length === 0) return;
+
+      const validReports = newReports.filter((report) => {
+        if (!report.date || isNaN(Date.parse(report.date))) return false;
+        if (
+          typeof report.openedCount !== 'number' ||
+          typeof report.closedCount !== 'number'
+        )
+          return false;
+        return true;
+      });
+
+      if (validReports.length === 0) return;
+
+      setAllTicketData((prev) => {
+        const uniqueReports = validReports.filter(
+          (report) =>
+            !prev.some(
+              (existing) =>
+                existing.date === report.date && existing.days === report.days,
+            ),
+        );
+        return [...prev, ...uniqueReports];
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
-    if (fetchError) {
+    if (activityFetchError || ticketFetchError) {
       setError(
-        fetchError instanceof Error
-          ? fetchError.message
-          : 'Failed to fetch data',
+        activityFetchError instanceof Error
+          ? activityFetchError.message
+          : ticketFetchError instanceof Error
+            ? ticketFetchError.message
+            : 'Failed to fetch data',
       );
-      setIsFetching(false);
+      setIsFetchingActivity(false);
+      setIsFetchingTickets(false);
       return;
     }
-    if (isLoading) {
-      setIsFetching(true);
-      return;
-    }
-    if (pageReports) {
-      appendReports(pageReports);
-      if (links?.next) {
-        setNextUrl(links.next);
+    if (activityIsLoading) {
+      setIsFetchingActivity(true);
+    } else if (activityReports) {
+      appendActivityReports(activityReports);
+      if (activityLinks?.next) {
+        setActivityNextUrl(activityLinks.next);
       } else {
-        setIsFetching(false);
+        setIsFetchingActivity(false);
       }
     }
-  }, [pageReports, links, fetchError, isLoading, appendReports]);
+    if (ticketIsLoading) {
+      setIsFetchingTickets(true);
+    } else if (ticketReports) {
+      appendTicketReports(ticketReports);
+      if (ticketLinks?.next) {
+        setTicketNextUrl(ticketLinks.next);
+      } else {
+        setIsFetchingTickets(false);
+      }
+    }
+  }, [
+    activityReports,
+    activityLinks,
+    activityFetchError,
+    activityIsLoading,
+    ticketReports,
+    ticketLinks,
+    ticketFetchError,
+    ticketIsLoading,
+    appendActivityReports,
+    appendTicketReports,
+  ]);
 
   const availableYears = useMemo(() => {
     const years = new Set<string>();
-    allData.forEach((item) => {
+    allTicketData.forEach((item) => {
       const date = new Date(item.date);
       if (!isNaN(date.getTime())) {
         years.add(date.getFullYear().toString());
       }
     });
     return Array.from(years).sort((a, b) => Number(a) - Number(b));
-  }, [allData]);
+  }, [allTicketData]);
+
+  const availableMonths = useMemo(() => {
+    const months = [
+      { value: '01', label: 'January' },
+      { value: '02', label: 'February' },
+      { value: '03', label: 'March' },
+      { value: '04', label: 'April' },
+      { value: '05', label: 'May' },
+      { value: '06', label: 'June' },
+      { value: '07', label: 'July' },
+      { value: '08', label: 'August' },
+      { value: '09', label: 'September' },
+      { value: '10', label: 'October' },
+      { value: '11', label: 'November' },
+      { value: '12', label: 'December' },
+    ];
+    return months.filter((month) =>
+      allTicketData.some((item) => {
+        const date = new Date(item.date);
+        return (
+          !isNaN(date.getTime()) &&
+          date.getMonth() + 1 === Number(month.value) &&
+          (!selectedYear || date.getFullYear().toString() === selectedYear)
+        );
+      }),
+    );
+  }, [allTicketData, selectedYear]);
 
   useEffect(() => {
     if (availableYears.length > 0 && !selectedYear) {
       setSelectedYear(availableYears[availableYears.length - 1]);
     }
-  }, [availableYears, selectedYear]);
+    if (availableMonths.length > 0 && !selectedMonth) {
+      setSelectedMonth(availableMonths[0].value);
+    }
+  }, [availableYears, availableMonths, selectedYear, selectedMonth]);
 
   const aggregateData = useCallback(
     (data: ActivityDto[]): AggregatedData => {
@@ -144,13 +255,13 @@ const AnalyticsPage = () => {
 
         let key: string;
         if (viewMode === 'day') {
-          key = `${date.getDate().toString().padStart(2, '0')}-${(
+          key = `${date.getDate().toString().padStart(2, '0')}/${(
             date.getMonth() + 1
           )
             .toString()
-            .padStart(2, '0')}-${date.getFullYear()}`;
+            .padStart(2, '0')}/${date.getFullYear()}`;
         } else if (viewMode === 'month') {
-          key = `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+          key = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
         } else {
           key = date.getFullYear().toString();
         }
@@ -195,11 +306,11 @@ const AnalyticsPage = () => {
   );
 
   const aggregatedData = useMemo(
-    () => aggregateData(allData),
-    [aggregateData, allData],
+    () => aggregateData(allActivityData),
+    [aggregateData, allActivityData],
   );
 
-  const monthlyReportData = useMemo(() => {
+  const monthlyActivityReportData = useMemo(() => {
     if (!selectedYear) return [];
 
     const months = [
@@ -217,7 +328,7 @@ const AnalyticsPage = () => {
       'December',
     ];
 
-    const monthlyAggregated: { [month: number]: MonthlyReport } = {};
+    const monthlyAggregated: { [month: number]: MonthlyActivityReport } = {};
     for (let i = 0; i < 12; i++) {
       monthlyAggregated[i] = {
         month: months[i],
@@ -227,7 +338,7 @@ const AnalyticsPage = () => {
       };
     }
 
-    allData.forEach((item) => {
+    allActivityData.forEach((item) => {
       const date = new Date(item.date);
       if (isNaN(date.getTime())) return;
       if (date.getFullYear().toString() !== selectedYear) return;
@@ -241,7 +352,45 @@ const AnalyticsPage = () => {
     });
 
     return Object.values(monthlyAggregated);
-  }, [allData, selectedYear]);
+  }, [allActivityData, selectedYear]);
+
+  const termReportData = useMemo(() => {
+    if (!selectedYear || !selectedMonth) return [];
+
+    const termTypes: { [key: number]: string } = {
+      '-1': 'No Term',
+      '30': '1 Month',
+      '90': '3 Months',
+      '180': '6 Months',
+    };
+
+    const termAggregated: { [days: number]: TermReport } = {};
+    [-1, 30, 90, 180].forEach((days) => {
+      termAggregated[days] = {
+        termType: termTypes[days] || `${days} Days`,
+        openedCount: 0,
+        closedCount: 0,
+      };
+    });
+
+    allTicketData.forEach((item) => {
+      const date = new Date(item.date);
+      if (isNaN(date.getTime())) return;
+      if (date.getFullYear().toString() !== selectedYear) return;
+      if ((date.getMonth() + 1).toString().padStart(2, '0') !== selectedMonth)
+        return;
+
+      if (termAggregated[item.days]) {
+        termAggregated[item.days].openedCount += item.openedCount;
+        termAggregated[item.days].closedCount += item.closedCount;
+      }
+    });
+
+    return Object.values(termAggregated).map((item) => ({
+      ...item,
+      difference: item.openedCount - item.closedCount,
+    }));
+  }, [allTicketData, selectedYear, selectedMonth]);
 
   const getChartData = useCallback(
     (data: number[], label: string, color: string, labels: string[]) => ({
@@ -293,9 +442,9 @@ const AnalyticsPage = () => {
     setActiveTab(tab);
   };
 
-  const exportToExcel = () => {
+  const exportActivityToExcel = () => {
     const ws = XLSX.utils.json_to_sheet(
-      monthlyReportData.map((row, index) => ({
+      monthlyActivityReportData.map((row, index) => ({
         No: index + 1,
         Month: row.month,
         'New Users': row.users,
@@ -306,8 +455,26 @@ const AnalyticsPage = () => {
       })),
     );
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Report');
+    XLSX.utils.book_append_sheet(wb, ws, 'Activity Report');
     XLSX.writeFile(wb, `Monthly_Activity_Report_${selectedYear}.xlsx`);
+  };
+
+  const exportTermToExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(
+      termReportData.map((row, index) => ({
+        No: index + 1,
+        'Term Type': row.termType,
+        'Opened Tickets': row.openedCount,
+        'Closed Tickets': row.closedCount,
+        'Difference Open/Close': row.difference,
+      })),
+    );
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Term Report');
+    XLSX.writeFile(
+      wb,
+      `Term_Ticket_Report_${selectedYear}_${selectedMonth}.xlsx`,
+    );
   };
 
   const renderAnalyticsContent = () => (
@@ -372,7 +539,7 @@ const AnalyticsPage = () => {
     </div>
   );
 
-  const renderReportContent = () => (
+  const renderActivityReportContent = () => (
     <div className="card bg-base-100 p-4 shadow-md">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Monthly Activity Report</h2>
@@ -390,7 +557,7 @@ const AnalyticsPage = () => {
           </select>
           <button
             className="btn btn-secondary"
-            onClick={exportToExcel}
+            onClick={exportActivityToExcel}
             disabled={!selectedYear}
           >
             Export Excel
@@ -409,7 +576,7 @@ const AnalyticsPage = () => {
             </tr>
           </thead>
           <tbody>
-            {monthlyReportData.map((row, index) => (
+            {monthlyActivityReportData.map((row, index) => (
               <tr key={row.month}>
                 <td>{index + 1}</td>
                 <td>{row.month}</td>
@@ -426,12 +593,90 @@ const AnalyticsPage = () => {
     </div>
   );
 
-  if (isFetching && !allData.length)
+  const renderTicketReportContent = () => (
+    <div className="card bg-base-100 p-4 shadow-md">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Ticket Report</h2>
+        <div className="flex space-x-2">
+          <select
+            className="select select-bordered"
+            value={selectedYear}
+            onChange={(e) => {
+              setSelectedYear(e.target.value);
+              setSelectedMonth('');
+            }}
+          >
+            <option value="">Choose year</option>
+            {availableYears.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+          <select
+            className="select select-bordered"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            disabled={!selectedYear}
+          >
+            <option value="">Choose month</option>
+            {availableMonths.map((month) => (
+              <option key={month.value} value={month.value}>
+                {month.label}
+              </option>
+            ))}
+          </select>
+          <button
+            className="btn btn-secondary"
+            onClick={exportTermToExcel}
+            disabled={!selectedYear || !selectedMonth}
+          >
+            Export Excel
+          </button>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="table w-full">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Term</th>
+              <th>Opened ticket</th>
+              <th>Closed ticket</th>
+              <th>Difference Open/Close</th>
+            </tr>
+          </thead>
+          <tbody>
+            {termReportData.map((row, index) => (
+              <tr key={row.termType}>
+                <td>{index + 1}</td>
+                <td>{row.termType}</td>
+                <td>{row.openedCount}</td>
+                <td>{row.closedCount}</td>
+                <td>{row.difference}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  if (
+    (isFetchingActivity || isFetchingTickets) &&
+    !allActivityData.length &&
+    !allTicketData.length
+  )
     return <div className="p-4 text-center">Loading...</div>;
   if (error)
     return <div className="p-4 text-center text-red-500">Error: {error}</div>;
-  if (!allData.length && !isFetching)
-    return <div className="p-4 text-center">No data available</div>;
+  if (
+    !allActivityData.length &&
+    !allTicketData.length &&
+    !isFetchingActivity &&
+    !isFetchingTickets
+  )
+    return <div className="p-4 text-center">There is no data</div>;
 
   return (
     <div className="space-y-6 p-4">
@@ -445,15 +690,24 @@ const AnalyticsPage = () => {
         </a>
         <a
           role="tab"
-          className={`tab ${activeTab === 'report' ? 'tab-active' : ''}`}
-          onClick={() => handleTabChange('report')}
+          className={`tab ${activeTab === 'activityReport' ? 'tab-active' : ''}`}
+          onClick={() => handleTabChange('activityReport')}
         >
-          Report
+          Activity Report
+        </a>
+        <a
+          role="tab"
+          className={`tab ${activeTab === 'ticketReport' ? 'tab-active' : ''}`}
+          onClick={() => handleTabChange('ticketReport')}
+        >
+          Ticket Report
         </a>
       </div>
       {activeTab === 'analytics'
         ? renderAnalyticsContent()
-        : renderReportContent()}
+        : activeTab === 'activityReport'
+          ? renderActivityReportContent()
+          : renderTicketReportContent()}
     </div>
   );
 };
