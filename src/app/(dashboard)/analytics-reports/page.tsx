@@ -26,6 +26,7 @@ ChartJS.register(
 );
 
 type ViewMode = 'day' | 'month' | 'year';
+type TabType = 'analytics' | 'report';
 
 interface AggregatedData {
   labels: string[];
@@ -40,6 +41,7 @@ const AnalyticsPage = () => {
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [activeTab, setActiveTab] = useState<TabType>('analytics');
 
   const {
     reports: pageReports,
@@ -187,13 +189,6 @@ const AnalyticsPage = () => {
     [],
   );
 
-  if (isFetching && !allData.length)
-    return <div className="p-4 text-center">Loading...</div>;
-  if (error)
-    return <div className="p-4 text-center text-red-500">Error: {error}</div>;
-  if (!allData.length && !isFetching)
-    return <div className="p-4 text-center">No data available</div>;
-
   const usersChartData = getChartData(
     aggregatedData.users,
     'Users',
@@ -224,8 +219,12 @@ const AnalyticsPage = () => {
     },
   };
 
-  return (
-    <div className="space-y-6 p-4">
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+  };
+
+  const renderAnalyticsContent = () => (
+    <div className="space-y-6">
       <div className="flex justify-end">
         <select
           className="select select-bordered"
@@ -283,6 +282,43 @@ const AnalyticsPage = () => {
           />
         </div>
       </div>
+    </div>
+  );
+
+  const renderReportContent = () => (
+    <div className="card bg-base-100 p-4 shadow-md">
+      <h2 className="mb-4 text-xl font-semibold">Report</h2>
+    </div>
+  );
+
+  if (isFetching && !allData.length)
+    return <div className="p-4 text-center">Loading...</div>;
+  if (error)
+    return <div className="p-4 text-center text-red-500">Error: {error}</div>;
+  if (!allData.length && !isFetching)
+    return <div className="p-4 text-center">No data available</div>;
+
+  return (
+    <div className="space-y-6 p-4">
+      <div role="tablist" className="tabs tabs-border">
+        <a
+          role="tab"
+          className={`tab ${activeTab === 'analytics' ? 'tab-active' : ''}`}
+          onClick={() => handleTabChange('analytics')}
+        >
+          Analytics
+        </a>
+        <a
+          role="tab"
+          className={`tab ${activeTab === 'report' ? 'tab-active' : ''}`}
+          onClick={() => handleTabChange('report')}
+        >
+          Report
+        </a>
+      </div>
+      {activeTab === 'analytics'
+        ? renderAnalyticsContent()
+        : renderReportContent()}
     </div>
   );
 };
