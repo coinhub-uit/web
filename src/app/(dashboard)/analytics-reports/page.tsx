@@ -14,6 +14,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import * as XLSX from 'xlsx';
 
 ChartJS.register(
   CategoryScale,
@@ -35,6 +36,13 @@ interface AggregatedData {
   totalPrincipal: number[];
 }
 
+interface MonthlyReport {
+  month: string;
+  users: number;
+  tickets: number;
+  totalPrincipal: number;
+}
+
 const AnalyticsPage = () => {
   const [allData, setAllData] = useState<ActivityDto[]>([]);
   const [nextUrl, setNextUrl] = useState<string | undefined>(undefined);
@@ -42,6 +50,7 @@ const AnalyticsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [activeTab, setActiveTab] = useState<TabType>('analytics');
+  const [selectedYear, setSelectedYear] = useState<string>('');
 
   const {
     reports: pageReports,
@@ -101,6 +110,23 @@ const AnalyticsPage = () => {
       }
     }
   }, [pageReports, links, fetchError, isLoading, appendReports]);
+
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    allData.forEach((item) => {
+      const date = new Date(item.date);
+      if (!isNaN(date.getTime())) {
+        years.add(date.getFullYear().toString());
+      }
+    });
+    return Array.from(years).sort((a, b) => Number(a) - Number(b));
+  }, [allData]);
+
+  useEffect(() => {
+    if (availableYears.length > 0 && !selectedYear) {
+      setSelectedYear(availableYears[availableYears.length - 1]);
+    }
+  }, [availableYears, selectedYear]);
 
   const aggregateData = useCallback(
     (data: ActivityDto[]): AggregatedData => {
@@ -173,6 +199,50 @@ const AnalyticsPage = () => {
     [aggregateData, allData],
   );
 
+  const monthlyReportData = useMemo(() => {
+    if (!selectedYear) return [];
+
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    const monthlyAggregated: { [month: number]: MonthlyReport } = {};
+    for (let i = 0; i < 12; i++) {
+      monthlyAggregated[i] = {
+        month: months[i],
+        users: 0,
+        tickets: 0,
+        totalPrincipal: 0,
+      };
+    }
+
+    allData.forEach((item) => {
+      const date = new Date(item.date);
+      if (isNaN(date.getTime())) return;
+      if (date.getFullYear().toString() !== selectedYear) return;
+
+      const monthIndex = date.getMonth();
+      monthlyAggregated[monthIndex].users += item.users;
+      monthlyAggregated[monthIndex].tickets += item.tickets;
+      monthlyAggregated[monthIndex].totalPrincipal += parseFloat(
+        item.totalPrincipal,
+      );
+    });
+
+    return Object.values(monthlyAggregated);
+  }, [allData, selectedYear]);
+
   const getChartData = useCallback(
     (data: number[], label: string, color: string, labels: string[]) => ({
       labels,
@@ -191,13 +261,13 @@ const AnalyticsPage = () => {
 
   const usersChartData = getChartData(
     aggregatedData.users,
-    'Users',
+    'New Users',
     'rgba(75, 192, 192, 1)',
     aggregatedData.labels,
   );
   const ticketsChartData = getChartData(
     aggregatedData.tickets,
-    'Tickets',
+    'New Tickets',
     'rgba(255, 99, 132, 1)',
     aggregatedData.labels,
   );
@@ -223,6 +293,23 @@ const AnalyticsPage = () => {
     setActiveTab(tab);
   };
 
+  const exportToExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(
+      monthlyReportData.map((row, index) => ({
+        No: index + 1,
+        Month: row.month,
+        'New Users': row.users,
+        'New Tickets': row.tickets,
+        'Total Principal (VND)': Math.round(row.totalPrincipal).toLocaleString(
+          'en-US',
+        ),
+      })),
+    );
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Report');
+    XLSX.writeFile(wb, `Monthly_Activity_Report_${selectedYear}.xlsx`);
+  };
+
   const renderAnalyticsContent = () => (
     <div className="space-y-6">
       <div className="flex justify-end">
@@ -238,7 +325,7 @@ const AnalyticsPage = () => {
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="card bg-base-100 p-4 shadow-md">
-          <h2 className="mb-4 text-xl font-semibold">Users Over Time</h2>
+          <h2 className="mb-4 text-xl font-semibold">New Users Over Time</h2>
           <Line
             data={usersChartData}
             options={{
@@ -251,7 +338,7 @@ const AnalyticsPage = () => {
           />
         </div>
         <div className="card bg-base-100 p-4 shadow-md">
-          <h2 className="mb-4 text-xl font-semibold">Tickets Over Time</h2>
+          <h2 className="mb-4 text-xl font-semibold">New Tickets Over Time</h2>
           <Line
             data={ticketsChartData}
             options={{
@@ -287,7 +374,55 @@ const AnalyticsPage = () => {
 
   const renderReportContent = () => (
     <div className="card bg-base-100 p-4 shadow-md">
-      <h2 className="mb-4 text-xl font-semibold">Report</h2>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Monthly Activity Report</h2>
+        <div className="flex space-x-2">
+          <select
+            className="select select-bordered"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+          >
+            {availableYears.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+          <button
+            className="btn btn-secondary"
+            onClick={exportToExcel}
+            disabled={!selectedYear}
+          >
+            Export Excel
+          </button>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="table w-full">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Month</th>
+              <th>New Users</th>
+              <th>New Tickets</th>
+              <th>Total Principal (VND)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {monthlyReportData.map((row, index) => (
+              <tr key={row.month}>
+                <td>{index + 1}</td>
+                <td>{row.month}</td>
+                <td>{row.users}</td>
+                <td>{row.tickets}</td>
+                <td>
+                  {Math.round(row.totalPrincipal).toLocaleString('en-US')}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
