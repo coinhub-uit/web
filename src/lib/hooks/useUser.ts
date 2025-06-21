@@ -50,7 +50,11 @@ export function useUsers(params: {
     }
   }
 
-  const url = params.nextUrl ?? `${API_URL}/users?${query.toString()}`;
+  let url = params.nextUrl ?? `${API_URL}/users?${query.toString()}`;
+  if (url.startsWith('http://')) {
+    url = url.replace('http://', 'https://');
+  }
+
   const raw = useFetch<UserListResponse>(url);
 
   return useMemo(() => {
