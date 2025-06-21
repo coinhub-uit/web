@@ -12,7 +12,7 @@ const Logo = () => {
     setLogoSrc(
       isDark
         ? '/images/coinhub-wordmark-white.png'
-        : '/images/Coinhub-Wordmark.png',
+        : '/images/CoinHub-Wordmark.png',
     );
   }, [isDark]);
 
