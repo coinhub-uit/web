@@ -901,6 +901,14 @@ const AnalyticsPage = () => {
           role="tab"
           className={`tab ${activeTab === 'analytics' ? 'tab-active' : ''}`}
           onClick={() => handleTabChange('analytics')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === 'Space') {
+              e.preventDefault();
+              handleTabChange('analytics');
+            }
+          }}
+          tabIndex={0}
+          href="#" // Add href or use <button> if no navigation
         >
           Analytics
         </a>
@@ -908,6 +916,14 @@ const AnalyticsPage = () => {
           role="tab"
           className={`tab ${activeTab === 'activityReport' ? 'tab-active' : ''}`}
           onClick={() => handleTabChange('activityReport')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === 'Space') {
+              e.preventDefault();
+              handleTabChange('activityReport');
+            }
+          }}
+          tabIndex={0}
+          href="#"
         >
           Activity Report
         </a>
@@ -915,6 +931,14 @@ const AnalyticsPage = () => {
           role="tab"
           className={`tab ${activeTab === 'ticketReport' ? 'tab-active' : ''}`}
           onClick={() => handleTabChange('ticketReport')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === 'Space') {
+              e.preventDefault();
+              handleTabChange('ticketReport');
+            }
+          }}
+          tabIndex={0}
+          href="#"
         >
           Ticket Report
         </a>
@@ -922,6 +946,14 @@ const AnalyticsPage = () => {
           role="tab"
           className={`tab ${activeTab === 'revenueReport' ? 'tab-active' : ''}`}
           onClick={() => handleTabChange('revenueReport')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === 'Space') {
+              e.preventDefault();
+              handleTabChange('revenueReport');
+            }
+          }}
+          tabIndex={0}
+          href="#"
         >
           Revenue Report
         </a>
