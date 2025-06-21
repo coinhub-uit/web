@@ -50,7 +50,7 @@ export function useUsers(params: {
     }
   }
 
-  const url = params.nextUrl || `${API_URL}/users?${query.toString()}`;
+  const url = params.nextUrl ?? `${API_URL}/users?${query.toString()}`;
   const raw = useFetch<UserListResponse>(url);
 
   return useMemo(() => {
@@ -120,7 +120,7 @@ export async function deleteUser(
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        errorData.message ||
+        errorData.message ??
           `Failed to delete user with ID ${id} (Status: ${response.status})`,
       );
     }

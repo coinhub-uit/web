@@ -77,7 +77,7 @@ const HomePage = () => {
   });
 
   useEffect(() => {
-    const isLoading = userIsLoading || revenueIsLoading || ticketIsLoading;
+    const isLoading = userIsLoading ?? revenueIsLoading ?? ticketIsLoading;
     if (isLoading) {
       setIsFetching(true);
     } else if (
@@ -132,11 +132,11 @@ const HomePage = () => {
 
   const { totalUsers, growthCount, growthPercentage, newUsersThisMonth } =
     useMemo(() => {
-      const now = new Date('2025-06-21T03:50:00+07:00'); // Updated to current time
-      const currentMonth = now.getMonth(); // June (5)
-      const currentYear = now.getFullYear(); // 2025
-      const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1; // May (4)
-      const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear; // 2025
+      const now = new Date('2025-06-21T03:50:00+07:00');
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+      const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
       const currentTotalUsers = allUsers.filter((user) => {
         const createdAt = new Date(user.createdAt);
@@ -178,7 +178,7 @@ const HomePage = () => {
   const revenueChartData = useMemo(() => {
     const now = new Date('2025-06-21T03:50:00+07:00');
     const sixMonthsAgo = new Date(now);
-    sixMonthsAgo.setMonth(now.getMonth() - 5); // 5 months back to include current month (Jan 2025 to Jun 2025)
+    sixMonthsAgo.setMonth(now.getMonth() - 5);
 
     const filteredRevenueData = allRevenueData.filter((report) => {
       const reportDate = new Date(report.date);
@@ -207,10 +207,10 @@ const HomePage = () => {
       (a, b) => new Date(a).getTime() - new Date(b).getTime(),
     );
     const incomeData = labels.map(
-      (month) => monthlyData[month].income / (monthlyData[month].count || 1),
+      (month) => monthlyData[month].income / (monthlyData[month].count ?? 1),
     );
     const expenseData = labels.map(
-      (month) => monthlyData[month].expense / (monthlyData[month].count || 1),
+      (month) => monthlyData[month].expense / (monthlyData[month].count ?? 1),
     );
 
     return {
@@ -258,7 +258,7 @@ const HomePage = () => {
             term === -1
               ? 'No Term'
               : `${term / 30} Month${term / 30 > 1 ? 's' : ''}`;
-          acc[termLabel] = (acc[termLabel] || 0) + report.openedCount;
+          acc[termLabel] = (acc[termLabel] ?? 0) + report.openedCount;
         }
         return acc;
       },
@@ -321,8 +321,8 @@ const HomePage = () => {
     return (
       <div className="p-4 text-center text-red-500">
         Error:{' '}
-        {(userError || revenueError || ticketError) instanceof Error
-          ? (userError || revenueError || ticketError).message
+        {(userError ?? revenueError ?? ticketError) instanceof Error
+          ? (userError ?? revenueError ?? ticketError).message
           : 'Failed to fetch data'}
       </div>
     );

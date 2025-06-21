@@ -66,7 +66,7 @@ export function useReportsActivity(params: {
   }
 
   const url =
-    params.nextUrl || `${API_URL}/reports/activity?${query.toString()}`;
+    params.nextUrl ?? `${API_URL}/reports/activity?${query.toString()}`;
   const raw = useFetch<ReportActivityResponse>(url);
 
   return useMemo(() => {
@@ -94,7 +94,7 @@ export function useReportTicket(params: {
     }
   }
 
-  const url = params.nextUrl || `${API_URL}/reports/ticket?${query.toString()}`;
+  const url = params.nextUrl ?? `${API_URL}/reports/ticket?${query.toString()}`;
   const raw = useFetch<ReportTicketResponse>(url);
 
   return useMemo(() => {
@@ -123,7 +123,7 @@ export function useRevenueTicket(params: {
   }
 
   const url =
-    params.nextUrl || `${API_URL}/reports/revenue?${query.toString()}`;
+    params.nextUrl ?? `${API_URL}/reports/revenue?${query.toString()}`;
   const raw = useFetch<ReportRevenueResponse>(url);
 
   return useMemo(() => {

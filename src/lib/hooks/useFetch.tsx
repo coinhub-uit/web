@@ -37,7 +37,7 @@ export default function useFetch<T>(url: string, init?: RequestInit) {
   return useMemo(
     () => ({
       ...swr,
-      isLoading: swr.isLoading || status !== 'authenticated',
+      isLoading: swr.isLoading ?? status !== 'authenticated',
     }),
     [swr.data, swr.error, swr.isLoading, status],
   );

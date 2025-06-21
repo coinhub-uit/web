@@ -75,7 +75,7 @@ const Users = () => {
 
   useEffect(() => {
     const cleanup = setupInfiniteScroll();
-    return cleanup || (() => {});
+    return cleanup ?? (() => {});
   }, [setupInfiniteScroll]);
 
   if (error) return <div>Error: {error.message}</div>;

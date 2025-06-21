@@ -104,7 +104,7 @@ export default function UserDetailPage({ params }: Props) {
           <div className="flex flex-col items-center justify-center gap-2">
             <div className="relative h-40 w-40 overflow-hidden rounded-lg">
               <Image
-                src={user.avatar || '/images/avatar.jpg'}
+                src={user.avatar ?? '/images/avatar.jpg'}
                 alt={user.fullName}
                 fill
                 className="object-cover"
@@ -165,7 +165,7 @@ export default function UserDetailPage({ params }: Props) {
               Confirm Deletion
             </h3>
             <p id="modal-description" className="py-4">
-              Are you sure you want to delete user {user?.fullName || id}?
+              Are you sure you want to delete user {user?.fullName ?? id}?
             </p>
             {deleteError && (
               <p className="text-sm text-red-500">{deleteError}</p>
