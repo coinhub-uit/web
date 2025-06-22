@@ -14,6 +14,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
@@ -25,6 +26,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
+  Filler,
 );
 
 interface HistoryDto {
@@ -139,7 +141,7 @@ const EditSavingPage = () => {
           data,
           borderColor: color,
           backgroundColor: color.replace('1)', '0.2)'),
-          fill: true,
+          fill: false,
         },
       ],
     }),

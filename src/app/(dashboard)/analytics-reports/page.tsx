@@ -19,6 +19,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler,
 } from 'chart.js';
 import * as XLSX from 'xlsx';
 
@@ -30,6 +31,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
+  Filler,
 );
 
 type ViewMode = 'day' | 'month' | 'year';

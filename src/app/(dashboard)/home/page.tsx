@@ -14,6 +14,7 @@ import {
   Tooltip,
   Legend,
   ArcElement,
+  Filler,
 } from 'chart.js';
 import { TicketReportDto } from '@/types/ticketReport';
 import { RevenueReportDto } from '@/types/revenue';
@@ -28,6 +29,7 @@ ChartJS.register(
   Tooltip,
   Legend,
   ArcElement,
+  Filler,
 );
 
 const HomePage = () => {
