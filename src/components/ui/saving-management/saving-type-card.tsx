@@ -23,11 +23,10 @@ const SavingCard = ({ id, name, interestRate }: SavingCardProps) => {
             <button
               className="btn btn-primary"
               onClick={() => {
-                console.log('click');
                 router.push(`/saving-management/edit/${id}`);
               }}
             >
-              Edit
+              Detail
             </button>
           </div>
         </div>

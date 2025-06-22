@@ -1,11 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { interestMap } from '@/constants/interestMap';
-import { useAppSelector } from '@/lib/hooks/redux';
 import { toast, ToastContainer } from 'react-toastify';
-import { useUpdatePlan } from '@/lib/hooks/usePlans';
+import { useGetPlan, useUpdatePlan } from '@/lib/hooks/usePlans';
 
 export default function EditSavingPage() {
   const modalRef = useRef<HTMLDialogElement | null>(null);
@@ -13,14 +12,27 @@ export default function EditSavingPage() {
   const router = useRouter();
   const savingId = params.id ? Number(params.id) : null;
 
-  const plan = useAppSelector((state) =>
-    state.saving.availablePlans.find((p) => p.planId === savingId),
-  );
+  const { data: plan, isLoading } = useGetPlan(savingId ?? 0);
+  const {
+    updatePlan,
+    loading: updateLoading,
+    error: updateError,
+  } = useUpdatePlan();
 
-  const [rate, setRate] = useState<string>(plan?.rate?.toString() ?? '');
-  const { updatePlan, loading } = useUpdatePlan();
+  const [rate, setRate] = useState<string>('');
 
-  if (!plan) return <>Failed to load data.</>;
+  useEffect(() => {
+    if (plan?.planHistories && plan.planHistories.length > 0) {
+      const latestHistory = plan.planHistories.reduce((latest, current) =>
+        new Date(latest.createdAt) > new Date(current.createdAt)
+          ? latest
+          : current,
+      );
+      setRate(latestHistory.rate);
+    }
+  }, [plan]);
+
+  if (isLoading || !plan) return <>Loading...</>;
 
   const openModal = () => {
     modalRef.current?.showModal();
@@ -28,7 +40,7 @@ export default function EditSavingPage() {
 
   const handleConfirmSave = async () => {
     try {
-      await updatePlan(plan.planId, parseFloat(rate));
+      await updatePlan(plan.id, parseFloat(rate));
       toast.success('Saved successfully!', {
         onClose: () => {
           router.push('/saving-management');
@@ -60,6 +72,7 @@ export default function EditSavingPage() {
         value={rate}
         onChange={(e) => setRate(e.target.value)}
       />
+      {updateError && <p className="text-error mb-4">{updateError}</p>}
 
       <button className="btn btn-primary w-full" onClick={openModal}>
         Save Changes
@@ -82,9 +95,9 @@ export default function EditSavingPage() {
                 type="button"
                 className="btn btn-primary"
                 onClick={handleConfirmSave}
-                disabled={loading}
+                disabled={updateLoading}
               >
-                {loading ? 'Saving...' : 'Save'}
+                {updateLoading ? 'Saving...' : 'Save'}
               </button>
             </form>
           </div>

@@ -2,8 +2,6 @@
 
 import SavingCard from '@/components/ui/saving-management/saving-type-card';
 import { interestMap } from '@/constants/interestMap';
-import { setAvailablePlans } from '@/lib/features/saving/savingSlice';
-import { useAppDispatch } from '@/lib/hooks/redux';
 import { useAvailablePlans } from '@/lib/hooks/usePlans';
 import { useGetSetting, useUpdateSetting } from '@/lib/hooks/useSetting';
 import { useEffect, useState } from 'react';
@@ -25,14 +23,7 @@ export default function SavingPage() {
     loading: updateLoading,
     error: updateError,
   } = useUpdateSetting();
-  const dispatch = useAppDispatch();
   const [minAmount, setMinAmount] = useState<string>('');
-
-  useEffect(() => {
-    if (plans) {
-      dispatch(setAvailablePlans(plans));
-    }
-  }, [plans, dispatch]);
 
   useEffect(() => {
     if (setting?.minAmountOpenTicket) {

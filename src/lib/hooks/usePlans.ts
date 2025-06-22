@@ -1,6 +1,10 @@
 import { API_URL } from '@/constants/api-urls';
 import useFetch from './useFetch';
-import type { PlanAvailableDto, PlanDto } from '@/types/plans';
+import type {
+  PlanAvailableDto,
+  PlanDto,
+  PlanWithHistoryDto,
+} from '@/types/plans';
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 
@@ -24,8 +28,9 @@ export function useAvailablePlans() {
   };
 }
 
-export function useGetPlan(id: number) {
-  return useFetch<PlanDto>(`${API_URL}/plans/${id}`);
+export function useGetPlan(id: number, allHistories: boolean = true) {
+  const url = `${API_URL}/plans/${id}?allHistories=${allHistories}`;
+  return useFetch<PlanWithHistoryDto>(url);
 }
 
 export function useUpdatePlan() {
