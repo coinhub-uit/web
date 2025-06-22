@@ -1,7 +1,9 @@
 'use client';
+
 import { UserDto } from '@/types/user';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 const UserCard = ({
   id,
@@ -14,9 +16,14 @@ const UserCard = ({
   deletedAt,
 }: UserDto) => {
   const router = useRouter();
+  const [avatarSrc, setAvatarSrc] = useState(avatar || '/images/avatar.jpg');
 
   const handleClick = () => {
     router.push(`/users/${id}`);
+  };
+
+  const handleImageError = () => {
+    setAvatarSrc('/images/avatar.jpg');
   };
 
   return (
@@ -36,10 +43,11 @@ const UserCard = ({
           <div className="avatar flex flex-col items-center gap-2">
             <div className="relative h-24 w-24 overflow-hidden rounded-full">
               <Image
-                src={avatar || '/images/avatar.jpg'}
+                src={avatarSrc}
                 alt={fullName}
                 fill
                 className="rounded-full object-cover"
+                onError={handleImageError}
               />
             </div>
             <span
