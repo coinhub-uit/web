@@ -77,57 +77,52 @@ const HomePage = () => {
   });
 
   useEffect(() => {
-    const isLoading = userIsLoading ?? revenueIsLoading ?? ticketIsLoading;
-    if (isLoading) {
-      setIsFetching(true);
-    } else if (
-      (users || revenueReports || ticketReports) &&
-      !(userError || revenueError || ticketError)
-    ) {
-      if (users) {
-        setAllUsers((prev) => {
-          const uniqueUsers = users.filter(
-            (user) => !prev.some((existing) => existing.id === user.id),
-          );
-          return [...prev, ...uniqueUsers];
-        });
-        setNextUserUrl(userLinks?.next);
-      }
-      if (revenueReports) {
-        setAllRevenueData((prev) => {
-          const uniqueReports = revenueReports.filter(
-            (report) => !prev.some((existing) => existing.date === report.date),
-          );
-          return [...prev, ...uniqueReports];
-        });
-        setNextRevenueUrl(revenueLinks?.next);
-      }
-      if (ticketReports) {
-        setAllTicketData((prev) => {
-          const uniqueReports = ticketReports.filter(
-            (report) => !prev.some((existing) => existing.date === report.date),
-          );
-          return [...prev, ...uniqueReports];
-        });
-        setNextTicketUrl(ticketLinks?.next);
-      }
-      if (!userLinks?.next && !revenueLinks?.next && !ticketLinks?.next) {
-        setIsFetching(false);
-      }
+    if (!userIsLoading && !userError && users?.length) {
+      setAllUsers((prev) => {
+        const unique = users.filter(
+          (u) => !prev.some((existing) => existing.id === u.id),
+        );
+        return [...prev, ...unique];
+      });
+      setNextUserUrl(userLinks?.next);
     }
+  }, [users, userIsLoading, userError, userLinks]);
+
+  useEffect(() => {
+    if (!revenueIsLoading && !revenueError && revenueReports?.length) {
+      setAllRevenueData((prev) => {
+        const unique = revenueReports.filter(
+          (r) => !prev.some((existing) => existing.date === r.date),
+        );
+        return [...prev, ...unique];
+      });
+      setNextRevenueUrl(revenueLinks?.next);
+    }
+  }, [revenueReports, revenueIsLoading, revenueError, revenueLinks]);
+
+  useEffect(() => {
+    if (!ticketIsLoading && !ticketError && ticketReports?.length) {
+      setAllTicketData((prev) => {
+        const unique = ticketReports.filter(
+          (r) => !prev.some((existing) => existing.date === r.date),
+        );
+        return [...prev, ...unique];
+      });
+      setNextTicketUrl(ticketLinks?.next);
+    }
+  }, [ticketReports, ticketIsLoading, ticketError, ticketLinks]);
+
+  useEffect(() => {
+    const isAnyLoading = userIsLoading || revenueIsLoading || ticketIsLoading;
+    const hasNext = nextUserUrl || nextRevenueUrl || nextTicketUrl;
+    setIsFetching(isAnyLoading || !!hasNext);
   }, [
-    users,
-    userLinks,
     userIsLoading,
-    userError,
-    revenueReports,
-    revenueLinks,
     revenueIsLoading,
-    revenueError,
-    ticketReports,
-    ticketLinks,
     ticketIsLoading,
-    ticketError,
+    nextUserUrl,
+    nextRevenueUrl,
+    nextTicketUrl,
   ]);
 
   const { totalUsers, growthCount, growthPercentage, newUsersThisMonth } =
