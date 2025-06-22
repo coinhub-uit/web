@@ -85,7 +85,7 @@ export function useUser(id: string) {
 }
 
 export function useUserTickets(id: string): UseUserTicketsResponse {
-  const url = `${API_URL}/users/${id}/tickets`;
+  const url = `${API_URL}/users/${id}/tickets?activeTicketOnly=false`;
   const raw = useFetch<TicketDto[]>(url);
 
   return useMemo(() => {

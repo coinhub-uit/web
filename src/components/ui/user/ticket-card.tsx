@@ -7,6 +7,21 @@ interface Props {
 }
 
 const TicketCard = ({ ticket }: Props) => {
+  const getBadgeProps = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return { className: 'badge-success', text: 'Active' };
+      case 'maturedwithdrawn':
+        return { className: 'badge-info', text: 'Matured Withdrawn' };
+      case 'earlywithdrawn':
+        return { className: 'badge-warning', text: 'Early Withdrawn' };
+      default:
+        return { className: 'badge-neutral', text: status };
+    }
+  };
+
+  const { className, text } = getBadgeProps(ticket.status);
+
   return (
     <div className="card bg-base-100 w-64 shadow-sm">
       <div className="card-body p-3">
@@ -14,13 +29,11 @@ const TicketCard = ({ ticket }: Props) => {
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold">Ticket #{ticket.id}</h2>
             <span
-              className={`badge badge-xs ${
-                ticket.status === 'closed' ? 'badge-error' : 'badge-success'
-              } text-white`}
+              className={`badge badge-sm ${className} text-white`}
               role="status"
-              aria-label={ticket.status}
+              aria-label={text}
             >
-              {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+              {text}
             </span>
           </div>
           <p className="text-xs">

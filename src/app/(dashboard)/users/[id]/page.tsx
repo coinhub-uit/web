@@ -43,23 +43,12 @@ export default function UserDetailPage({ params }: Props) {
   const closedScrollRef = useRef<HTMLDivElement | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
   const { mutate } = useSWRConfig();
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
     setIsModalOpen(false);
     setDeleteError(null);
-  };
-
-  useState(() => {
-    if (user) {
-      setAvatarSrc(user.avatar ?? '/images/avatar.jpg');
-    }
-  });
-
-  const handleImageError = () => {
-    setAvatarSrc('/images/avatar.jpg');
   };
 
   const handleDelete = async () => {
@@ -97,7 +86,11 @@ export default function UserDetailPage({ params }: Props) {
   const activeTickets =
     tickets?.filter((ticket) => ticket.status === 'active') || [];
   const closedTickets =
-    tickets?.filter((ticket) => ticket.status === 'closed') || [];
+    tickets?.filter(
+      (ticket) =>
+        ticket.status === 'earlyWithdrawn' ||
+        ticket.status === 'maturedWithdrawn',
+    ) || [];
   const safeSources = sources || [];
 
   return (
@@ -117,11 +110,10 @@ export default function UserDetailPage({ params }: Props) {
           <div className="flex flex-col items-center justify-center gap-2">
             <div className="relative h-40 w-40 overflow-hidden rounded-lg">
               <Image
-                src={avatarSrc ?? '/images/avatar.jpg'}
+                src={user.avatar ?? '/images/avatar.jpg'}
                 alt={user.fullName}
                 fill
                 className="object-cover"
-                onError={handleImageError}
               />
             </div>
             <span
