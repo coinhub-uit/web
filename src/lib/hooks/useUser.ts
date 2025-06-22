@@ -41,6 +41,7 @@ export function useUsers(params: {
   limit?: number;
   sortBy?: string[];
   nextUrl?: string;
+  status?: string;
 }) {
   const query = new URLSearchParams();
   if (params.limit) query.append('limit', params.limit.toString());
@@ -48,6 +49,10 @@ export function useUsers(params: {
     for (const sort of params.sortBy) {
       query.append('sortBy', sort);
     }
+  }
+
+  if (params.status && params.status !== 'ALL') {
+    query.append('status', params.status);
   }
 
   let url = params.nextUrl ?? `${API_URL}/users?${query.toString()}`;

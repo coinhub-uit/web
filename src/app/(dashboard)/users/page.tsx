@@ -19,6 +19,7 @@ const Users = () => {
     limit: 30,
     sortBy: [`createdAt:${sortOrder}`],
     nextUrl,
+    status: statusFilter,
   });
 
   const resetUsers = useCallback(() => {
