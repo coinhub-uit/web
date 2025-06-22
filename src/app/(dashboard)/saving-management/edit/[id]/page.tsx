@@ -46,7 +46,9 @@ export default function EditSavingPage() {
   return (
     <div className="p-3">
       <h1 className="mb-4 text-2xl font-bold">Edit saving</h1>
-      <label className="mb-2 block">Saving name: {interestInfo.name}</label>
+      <label className="mb-2 block">
+        Saving name: <strong>{interestInfo.name}</strong>
+      </label>
       <label htmlFor="interest-rate" className="mb-2 block">
         Interest Rate:
       </label>
