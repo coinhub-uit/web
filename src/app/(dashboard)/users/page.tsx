@@ -10,6 +10,9 @@ const Users = () => {
   const [nextUrl, setNextUrl] = useState<string | undefined>(undefined);
   const [nextPageUrl, setNextPageUrl] = useState<string | undefined>(undefined);
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+  const [statusFilter, setStatusFilter] = useState<
+    'ALL' | 'ACTIVE' | 'DELETED'
+  >('ALL');
   const observerRef = useRef<HTMLDivElement | null>(null);
 
   const { users, isLoading, error, links } = useUsers({
@@ -63,7 +66,7 @@ const Users = () => {
 
   useEffect(() => {
     resetUsers();
-  }, [resetUsers, sortOrder]);
+  }, [resetUsers, sortOrder, statusFilter]);
 
   useEffect(() => {
     updateUsers(users);
@@ -80,9 +83,26 @@ const Users = () => {
 
   if (error) return <div>Error: {error.message}</div>;
 
+  const filteredUsers = allUsers.filter((user) => {
+    if (statusFilter === 'ACTIVE') return !user.deletedAt;
+    if (statusFilter === 'DELETED') return !!user.deletedAt;
+    return true;
+  });
+
   return (
     <div className="mx-auto max-w-screen-xl space-y-6 p-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-4">
+        <select
+          className="select select-bordered"
+          value={statusFilter}
+          onChange={(e) =>
+            setStatusFilter(e.target.value as 'ALL' | 'ACTIVE' | 'DELETED')
+          }
+        >
+          <option value="ALL">All Users</option>
+          <option value="ACTIVE">Active Users</option>
+          <option value="DELETED">Deleted Users</option>
+        </select>
         <select
           className="select select-bordered"
           value={sortOrder}
@@ -93,7 +113,7 @@ const Users = () => {
         </select>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {allUsers.map((user: UserDto) => (
+        {filteredUsers.map((user: UserDto) => (
           <UserCard key={user.id} {...user} />
         ))}
       </div>
@@ -101,8 +121,13 @@ const Users = () => {
       {nextPageUrl && !isLoading && (
         <div ref={observerRef} className="h-10"></div>
       )}
-      {!nextPageUrl && !isLoading && allUsers.length > 0 && (
+      {!nextPageUrl && !isLoading && filteredUsers.length > 0 && (
         <div className="mt-4 text-center">No more users to load</div>
+      )}
+      {!isLoading && filteredUsers.length === 0 && (
+        <div className="mt-4 text-center">
+          No users match the selected criteria
+        </div>
       )}
     </div>
   );
