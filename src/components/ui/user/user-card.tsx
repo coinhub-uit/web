@@ -67,10 +67,12 @@ const UserCard = ({
               <strong>Created At:</strong>{' '}
               {new Date(createdAt).toLocaleString()}
             </p>
-            <p>
-              <strong>Deleted At:</strong>{' '}
-              {deletedAt ? new Date(deletedAt).toLocaleString() : 'Not deleted'}
-            </p>
+            {deletedAt && (
+              <p>
+                <strong>Deleted At:</strong>{' '}
+                {new Date(deletedAt).toLocaleString()}
+              </p>
+            )}
           </div>
         </div>
       </div>

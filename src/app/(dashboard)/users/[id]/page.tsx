@@ -92,13 +92,15 @@ export default function UserDetailPage({ params }: Props) {
   return (
     <div className="w-full max-w-full overflow-x-hidden p-4">
       <div className="card bg-base-100 relative w-full shadow-md">
-        <button
-          onClick={openModal}
-          className="btn btn-sm btn-error absolute top-4 right-4 text-white"
-          aria-label="Delete User"
-        >
-          Delete
-        </button>
+        {user.deletedAt ? null : (
+          <button
+            onClick={openModal}
+            className="btn btn-sm btn-error absolute top-4 right-4 text-white"
+            aria-label="Delete User"
+          >
+            Delete
+          </button>
+        )}
 
         <div className="card-body flex min-h-[300px] flex-row gap-6 p-6">
           <div className="flex flex-col items-center justify-center gap-2">
