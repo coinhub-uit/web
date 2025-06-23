@@ -252,10 +252,10 @@ export default function UserDetailPage({ params }: Props) {
 
       <div className="mt-6 w-full max-w-full">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Closed Tickets</h2>
+          <h2 className="text-2xl font-semibold">Withdrawn Tickets</h2>
         </div>
         {closedTickets.length === 0 ? (
-          <p className="text-gray-500">No closed tickets found</p>
+          <p className="text-gray-500">No withdrawn tickets found</p>
         ) : (
           <div className="relative max-w-full">
             <div
