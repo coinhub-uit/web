@@ -332,9 +332,9 @@ const HomePage = () => {
           <div className="stat-title">Users</div>
           <div className="stat-value">{totalUsers.toLocaleString('en-US')}</div>
           <div className="stat-desc">
-            {growthCount >= 0 ? '↗︎' : '↘︎'} {Math.abs(growthCount)} (
+            {growthCount >= 0 ? '↗︎' : '↘︎'}
             {growthPercentage !== 'N/A' ? `${growthPercentage}%` : 'N/A'}{' '}
-            compared to last month)
+            compared to last month
           </div>
         </div>
         <div className="stat place-items-center">
