@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json package-lock.json /app/
 
 FROM base AS deps
-RUN npm clean-install --omit=dev --ignore-scripts
+RUN npm clean-install --ignore-scripts
 
 FROM deps AS build
 COPY . /app/
