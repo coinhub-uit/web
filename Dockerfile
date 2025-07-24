@@ -13,8 +13,10 @@ COPY . /app/
 RUN npm run build
 
 FROM base AS production
-COPY --from=deps /app/node_modules/ /app/node_modules/
-COPY --from=build /app/dist/ /app/dist/
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=build /app/public ./public
+COPY --from=build /app/.next ./.next
+COPY --from=build /app/package.json ./
 ENV NODE_ENV=production
 EXPOSE 3000
 CMD ["npm", "run start"]
