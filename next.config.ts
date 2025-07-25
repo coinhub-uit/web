@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   // experimental: {
   // typedRoutes: true, // Because using turbopack, cannot use this
   // },
+  output: 'standalone',
   images: {
     domains: [
       'cloudflare-ipfs.com',
